@@ -1,0 +1,66 @@
+{
+  "state": "choose_method",
+  "id": "login-1",
+  "type": "api",
+  "expires_at": "2030-01-01T00:00:00Z",
+  "issued_at": "2026-01-01T00:00:00Z",
+  "request_url": "https://example.com/self-service/login/api",
+  "ui": {
+    "action": "https://example.com/self-service/login?flow=login-1",
+    "method": "POST",
+    "nodes": [
+      {
+        "type": "input",
+        "group": "default",
+        "messages": [],
+        "meta": {},
+        "attributes": {
+          "node_type": "input",
+          "name": "csrf_token",
+          "type": "hidden",
+          "value": "csrf-abc",
+          "disabled": false
+        }
+      },
+      {
+        "type": "input",
+        "group": "password",
+        "messages": [],
+        "meta": { "label": { "id": 1010001, "text": "Email", "type": "info" } },
+        "attributes": {
+          "node_type": "input",
+          "name": "identifier",
+          "type": "text",
+          "disabled": false,
+          "required": true
+        }
+      },
+      {
+        "type": "input",
+        "group": "password",
+        "messages": [],
+        "meta": {},
+        "attributes": {
+          "node_type": "input",
+          "name": "password",
+          "type": "password",
+          "disabled": false,
+          "required": true
+        }
+      },
+      {
+        "type": "input",
+        "group": "password",
+        "messages": [],
+        "meta": { "label": { "id": 1010002, "text": "Sign in", "type": "info" } },
+        "attributes": {
+          "node_type": "input",
+          "name": "method",
+          "type": "submit",
+          "value": "password",
+          "disabled": false
+        }
+      }
+    ]
+  }
+}

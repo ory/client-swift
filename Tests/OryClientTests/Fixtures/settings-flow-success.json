@@ -1,0 +1,22 @@
+{
+  "id": "settings-1",
+  "type": "api",
+  "state": "success",
+  "expires_at": "2035-01-01T00:00:00Z",
+  "issued_at": "2026-01-01T00:00:00Z",
+  "request_url": "https://example.com/self-service/settings/api",
+  "identity": {
+    "id": "identity-1",
+    "schema_id": "default",
+    "schema_url": "https://example.com/s",
+    "traits": { "email": "updated@example.com" }
+  },
+  "ui": {
+    "action": "https://example.com/self-service/settings?flow=settings-1",
+    "method": "POST",
+    "messages": [
+      { "id": 1050001, "text": "Your changes have been saved!", "type": "success" }
+    ],
+    "nodes": []
+  }
+}

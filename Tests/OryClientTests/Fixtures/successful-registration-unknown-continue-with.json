@@ -1,0 +1,21 @@
+{
+  "identity": {
+    "id": "identity-10",
+    "schema_id": "default",
+    "schema_url": "https://example.com/s",
+    "traits": { "email": "verify@example.com" }
+  },
+  "continue_with": [
+    {
+      "action": "show_device_trust_ui",
+      "flow": { "id": "trust-2" }
+    },
+    {
+      "action": "show_verification_ui",
+      "flow": {
+        "id": "verification-100",
+        "verifiable_address": "verify@example.com"
+      }
+    }
+  ]
+}

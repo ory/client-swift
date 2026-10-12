@@ -1,0 +1,11 @@
+{
+  "id": "session-1",
+  "active": true,
+  "authenticator_assurance_level": "aal2",
+  "identity": {
+    "id": "identity-1",
+    "schema_id": "default",
+    "schema_url": "https://example.com/s",
+    "traits": { "email": "user@example.com" }
+  }
+}

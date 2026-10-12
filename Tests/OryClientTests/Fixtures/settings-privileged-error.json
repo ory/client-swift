@@ -1,0 +1,6 @@
+{
+  "error": {
+    "id": "session_refresh_required",
+    "message": "The login session is too old and thus not allowed to update these fields. Please re-authenticate."
+  }
+}

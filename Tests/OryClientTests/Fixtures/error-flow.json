@@ -1,0 +1,7 @@
+{
+  "ui": {
+    "messages": [
+      { "id": 4000006, "text": "Invalid credentials", "type": "error" }
+    ]
+  }
+}

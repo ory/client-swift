@@ -1,0 +1,12 @@
+{
+  "error": {
+    "id": "self_service_flow_expired",
+    "code": 410,
+    "status": "Gone",
+    "reason": "The self-service flow expired 6.00 minutes ago, initialize a new one.",
+    "message": "self-service flow expired"
+  },
+  "expired_at": "2026-08-14T10:00:00.123456Z",
+  "since": 360000000000,
+  "use_flow_id": "a7f0b3d4-1f6b-4e2c-9d5a-8c1e2b3f4a5d"
+}

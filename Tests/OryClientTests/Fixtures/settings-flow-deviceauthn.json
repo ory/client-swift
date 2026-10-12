@@ -1,0 +1,59 @@
+{
+  "id": "settings-1",
+  "type": "api",
+  "expires_at": "2030-01-01T00:00:00Z",
+  "issued_at": "2026-01-01T00:00:00Z",
+  "request_url": "https://example.com/self-service/settings/api",
+  "state": "show_form",
+  "identity": {
+    "id": "identity-1",
+    "schema_id": "default",
+    "schema_url": "https://example.com/s",
+    "traits": {}
+  },
+  "ui": {
+    "action": "https://example.com/self-service/settings?flow=settings-1",
+    "method": "POST",
+    "nodes": [
+      {
+        "type": "input",
+        "group": "deviceauthn",
+        "messages": [],
+        "meta": {},
+        "attributes": {
+          "node_type": "input",
+          "name": "deviceauthn_nonce",
+          "type": "hidden",
+          "value": "eyJub25jZSI6ImJtOXVZMlU9In0=",
+          "disabled": false
+        }
+      },
+      {
+        "type": "input",
+        "group": "deviceauthn",
+        "messages": [],
+        "meta": {
+          "label": {
+            "id": 1050021,
+            "text": "iPhone",
+            "type": "info",
+            "context": { "client_key_id": "key-abc" }
+          }
+        },
+        "attributes": {
+          "node_type": "input",
+          "name": "deviceauthn_remove",
+          "type": "hidden",
+          "value": "key-abc",
+          "disabled": false
+        }
+      }
+    ]
+  },
+  "continue_with": [
+    {
+      "action": "show_pin_entry_ui",
+      "data": { "ciphertext": "Y2lwaGVy", "enc": "ZW5j" }
+    }
+  ]
+}

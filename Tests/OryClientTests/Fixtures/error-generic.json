@@ -1,0 +1,6 @@
+{
+  "error": {
+    "id": "session_inactive",
+    "message": "No active session"
+  }
+}

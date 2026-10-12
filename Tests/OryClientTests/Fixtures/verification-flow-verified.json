@@ -1,0 +1,10 @@
+{
+  "id": "verification-1",
+  "type": "api",
+  "state": "passed_challenge",
+  "ui": {
+    "action": "https://example.com/self-service/verification?flow=verification-1",
+    "method": "POST",
+    "nodes": []
+  }
+}

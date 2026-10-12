@@ -1,0 +1,26 @@
+{
+  "id": "settings-1",
+  "type": "api",
+  "state": "show_form",
+  "expires_at": "2035-01-01T00:00:00Z",
+  "issued_at": "2026-01-01T00:00:00Z",
+  "request_url": "https://example.com/self-service/settings/api",
+  "identity": {
+    "id": "identity-1",
+    "schema_id": "default",
+    "schema_url": "https://example.com/s",
+    "traits": { "email": "user@example.com" }
+  },
+  "continue_with": [
+    { "action": "show_device_trust_ui", "flow": { "id": "trust-1" } },
+    {
+      "action": "show_verification_ui",
+      "flow": { "id": "verification-77", "verifiable_address": "updated@example.com" }
+    }
+  ],
+  "ui": {
+    "action": "https://example.com/self-service/settings?flow=settings-1",
+    "method": "POST",
+    "nodes": []
+  }
+}

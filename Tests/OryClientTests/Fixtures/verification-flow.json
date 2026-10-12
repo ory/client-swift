@@ -1,0 +1,51 @@
+{
+  "id": "verification-1",
+  "type": "api",
+  "state": "choose_method",
+  "request_url": "https://example.com/self-service/verification/api",
+  "ui": {
+    "action": "https://example.com/self-service/verification?flow=verification-1",
+    "method": "POST",
+    "nodes": [
+      {
+        "type": "input",
+        "group": "default",
+        "messages": [],
+        "meta": {},
+        "attributes": {
+          "node_type": "input",
+          "name": "csrf_token",
+          "type": "hidden",
+          "value": "csrf-ver",
+          "disabled": false
+        }
+      },
+      {
+        "type": "input",
+        "group": "code",
+        "messages": [],
+        "meta": { "label": { "id": 1070007, "text": "Email", "type": "info" } },
+        "attributes": {
+          "node_type": "input",
+          "name": "email",
+          "type": "email",
+          "disabled": false,
+          "required": true
+        }
+      },
+      {
+        "type": "input",
+        "group": "code",
+        "messages": [],
+        "meta": { "label": { "id": 1070005, "text": "Submit", "type": "info" } },
+        "attributes": {
+          "node_type": "input",
+          "name": "method",
+          "type": "submit",
+          "value": "code",
+          "disabled": false
+        }
+      }
+    ]
+  }
+}

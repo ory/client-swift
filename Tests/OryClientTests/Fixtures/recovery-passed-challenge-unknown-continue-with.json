@@ -1,0 +1,27 @@
+{
+  "id": "recovery-1",
+  "type": "api",
+  "state": "passed_challenge",
+  "expires_at": "2035-01-01T00:00:00Z",
+  "issued_at": "2026-01-01T00:00:00Z",
+  "request_url": "https://example.com/self-service/recovery/api",
+  "continue_with": [
+    {
+      "action": "show_device_trust_ui",
+      "flow": { "id": "trust-9" }
+    },
+    {
+      "action": "set_ory_session_token",
+      "ory_session_token": "ory_st_recovered"
+    },
+    {
+      "action": "show_settings_ui",
+      "flow": { "id": "settings-77" }
+    }
+  ],
+  "ui": {
+    "action": "https://example.com/self-service/recovery?flow=recovery-1",
+    "method": "POST",
+    "nodes": []
+  }
+}

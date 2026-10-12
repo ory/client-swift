@@ -1,0 +1,53 @@
+{
+  "id": "recovery-1",
+  "type": "api",
+  "state": "choose_method",
+  "expires_at": "2035-01-01T00:00:00Z",
+  "issued_at": "2026-01-01T00:00:00Z",
+  "request_url": "https://example.com/self-service/recovery/api",
+  "ui": {
+    "action": "https://example.com/self-service/recovery?flow=recovery-1",
+    "method": "POST",
+    "nodes": [
+      {
+        "type": "input",
+        "group": "default",
+        "messages": [],
+        "meta": {},
+        "attributes": {
+          "node_type": "input",
+          "name": "csrf_token",
+          "type": "hidden",
+          "value": "csrf-rec",
+          "disabled": false
+        }
+      },
+      {
+        "type": "input",
+        "group": "code",
+        "messages": [],
+        "meta": { "label": { "id": 1070007, "text": "Email", "type": "info" } },
+        "attributes": {
+          "node_type": "input",
+          "name": "email",
+          "type": "email",
+          "disabled": false,
+          "required": true
+        }
+      },
+      {
+        "type": "input",
+        "group": "code",
+        "messages": [],
+        "meta": { "label": { "id": 1070005, "text": "Submit", "type": "info" } },
+        "attributes": {
+          "node_type": "input",
+          "name": "method",
+          "type": "submit",
+          "value": "code",
+          "disabled": false
+        }
+      }
+    ]
+  }
+}

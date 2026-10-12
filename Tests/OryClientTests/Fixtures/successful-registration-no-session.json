@@ -1,0 +1,8 @@
+{
+  "identity": {
+    "id": "identity-2",
+    "schema_id": "default",
+    "schema_url": "https://example.com/s",
+    "traits": { "email": "verify@example.com" }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "state": "choose_method",
+  "id": "login-2",
+  "type": "api",
+  "expires_at": "2030-01-01T00:00:00Z",
+  "issued_at": "2026-01-01T00:00:00Z",
+  "request_url": "https://example.com",
+  "ui": {
+    "action": "https://example.com/login",
+    "method": "POST",
+    "nodes": [
+      {
+        "type": "input",
+        "group": "future_method",
+        "messages": [],
+        "meta": {},
+        "attributes": {
+          "node_type": "input",
+          "name": "future_field",
+          "type": "text",
+          "disabled": false
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,647 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		09D6E7A32FF2CFAA00000517 /* OryClient in Frameworks */ = {isa = PBXBuildFile; productRef = 09D6E7A22FF2CFAA00000517 /* OryClient */; };
+		09D6E7A52FF2CFAA00000517 /* OryClientTestDoubles in Frameworks */ = {isa = PBXBuildFile; productRef = 09D6E7A42FF2CFAA00000517 /* OryClientTestDoubles */; };
+		0AF1FF012FF2CFAA00000517 /* FlowStacks in Frameworks */ = {isa = PBXBuildFile; productRef = 0AF1FF022FF2CFAA00000517 /* FlowStacks */; };
+		0AF1FF042FF2CFAA00000517 /* OryClient in Frameworks */ = {isa = PBXBuildFile; productRef = 0AF1FF052FF2CFAA00000517 /* OryClient */; };
+		0AF1FF112FF2CFAA00000517 /* OryClientSimulator in Frameworks */ = {isa = PBXBuildFile; productRef = 0AF1FF102FF2CFAA00000517 /* OryClientSimulator */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		09D6E7792FF2CE6600000517 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 09D6E7632FF2CE6400000517 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 09D6E76A2FF2CE6400000517;
+			remoteInfo = OryClientExample;
+		};
+		09D6E7832FF2CE6600000517 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 09D6E7632FF2CE6400000517 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 09D6E76A2FF2CE6400000517;
+			remoteInfo = OryClientExample;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		09D6E76B2FF2CE6400000517 /* OryClientExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OryClientExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		09D6E7782FF2CE6600000517 /* OryClientExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OryClientExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		09D6E7822FF2CE6600000517 /* OryClientExampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OryClientExampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		09D6E76D2FF2CE6400000517 /* OryClientExample */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OryClientExample;
+			sourceTree = "<group>";
+		};
+		09D6E77B2FF2CE6600000517 /* OryClientExampleTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OryClientExampleTests;
+			sourceTree = "<group>";
+		};
+		09D6E7852FF2CE6600000517 /* OryClientExampleUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OryClientExampleUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		09D6E7682FF2CE6400000517 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				09D6E7A32FF2CFAA00000517 /* OryClient in Frameworks */,
+				0AF1FF112FF2CFAA00000517 /* OryClientSimulator in Frameworks */,
+				0AF1FF012FF2CFAA00000517 /* FlowStacks in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		09D6E7752FF2CE6600000517 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				09D6E7A52FF2CFAA00000517 /* OryClientTestDoubles in Frameworks */,
+				0AF1FF042FF2CFAA00000517 /* OryClient in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		09D6E77F2FF2CE6600000517 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		09D6E7622FF2CE6400000517 = {
+			isa = PBXGroup;
+			children = (
+				09D6E76D2FF2CE6400000517 /* OryClientExample */,
+				09D6E77B2FF2CE6600000517 /* OryClientExampleTests */,
+				09D6E7852FF2CE6600000517 /* OryClientExampleUITests */,
+				09D6E76C2FF2CE6400000517 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		09D6E76C2FF2CE6400000517 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				09D6E76B2FF2CE6400000517 /* OryClientExample.app */,
+				09D6E7782FF2CE6600000517 /* OryClientExampleTests.xctest */,
+				09D6E7822FF2CE6600000517 /* OryClientExampleUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		09D6E76A2FF2CE6400000517 /* OryClientExample */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 09D6E78C2FF2CE6600000517 /* Build configuration list for PBXNativeTarget "OryClientExample" */;
+			buildPhases = (
+				09D6E7672FF2CE6400000517 /* Sources */,
+				09D6E7682FF2CE6400000517 /* Frameworks */,
+				09D6E7692FF2CE6400000517 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				09D6E76D2FF2CE6400000517 /* OryClientExample */,
+			);
+			name = OryClientExample;
+			packageProductDependencies = (
+				09D6E7A22FF2CFAA00000517 /* OryClient */,
+				0AF1FF102FF2CFAA00000517 /* OryClientSimulator */,
+				0AF1FF022FF2CFAA00000517 /* FlowStacks */,
+			);
+			productName = OryClientExample;
+			productReference = 09D6E76B2FF2CE6400000517 /* OryClientExample.app */;
+			productType = "com.apple.product-type.application";
+		};
+		09D6E7772FF2CE6600000517 /* OryClientExampleTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 09D6E78F2FF2CE6600000517 /* Build configuration list for PBXNativeTarget "OryClientExampleTests" */;
+			buildPhases = (
+				09D6E7742FF2CE6600000517 /* Sources */,
+				09D6E7752FF2CE6600000517 /* Frameworks */,
+				09D6E7762FF2CE6600000517 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				09D6E77A2FF2CE6600000517 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				09D6E77B2FF2CE6600000517 /* OryClientExampleTests */,
+			);
+			name = OryClientExampleTests;
+			packageProductDependencies = (
+				09D6E7A42FF2CFAA00000517 /* OryClientTestDoubles */,
+				0AF1FF052FF2CFAA00000517 /* OryClient */,
+			);
+			productName = OryClientExampleTests;
+			productReference = 09D6E7782FF2CE6600000517 /* OryClientExampleTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		09D6E7812FF2CE6600000517 /* OryClientExampleUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 09D6E7922FF2CE6600000517 /* Build configuration list for PBXNativeTarget "OryClientExampleUITests" */;
+			buildPhases = (
+				09D6E77E2FF2CE6600000517 /* Sources */,
+				09D6E77F2FF2CE6600000517 /* Frameworks */,
+				09D6E7802FF2CE6600000517 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				09D6E7842FF2CE6600000517 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				09D6E7852FF2CE6600000517 /* OryClientExampleUITests */,
+			);
+			name = OryClientExampleUITests;
+			packageProductDependencies = (
+			);
+			productName = OryClientExampleUITests;
+			productReference = 09D6E7822FF2CE6600000517 /* OryClientExampleUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		09D6E7632FF2CE6400000517 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2650;
+				LastUpgradeCheck = 2650;
+				TargetAttributes = {
+					09D6E76A2FF2CE6400000517 = {
+						CreatedOnToolsVersion = 26.5;
+					};
+					09D6E7772FF2CE6600000517 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 09D6E76A2FF2CE6400000517;
+					};
+					09D6E7812FF2CE6600000517 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 09D6E76A2FF2CE6400000517;
+					};
+				};
+			};
+			buildConfigurationList = 09D6E7662FF2CE6400000517 /* Build configuration list for PBXProject "OryClientExample" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 09D6E7622FF2CE6400000517;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				09D6E7A12FF2CFAA00000517 /* XCLocalSwiftPackageReference "../.." */,
+				0AF1FF032FF2CFAA00000517 /* XCRemoteSwiftPackageReference "FlowStacks" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 09D6E76C2FF2CE6400000517 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				09D6E76A2FF2CE6400000517 /* OryClientExample */,
+				09D6E7772FF2CE6600000517 /* OryClientExampleTests */,
+				09D6E7812FF2CE6600000517 /* OryClientExampleUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		09D6E7692FF2CE6400000517 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		09D6E7762FF2CE6600000517 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		09D6E7802FF2CE6600000517 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		09D6E7672FF2CE6400000517 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		09D6E7742FF2CE6600000517 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		09D6E77E2FF2CE6600000517 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		09D6E77A2FF2CE6600000517 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 09D6E76A2FF2CE6400000517 /* OryClientExample */;
+			targetProxy = 09D6E7792FF2CE6600000517 /* PBXContainerItemProxy */;
+		};
+		09D6E7842FF2CE6600000517 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 09D6E76A2FF2CE6400000517 /* OryClientExample */;
+			targetProxy = 09D6E7832FF2CE6600000517 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		09D6E78A2FF2CE6600000517 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		09D6E78B2FF2CE6600000517 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		09D6E78D2FF2CE6600000517 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = OryClientExample/OryClientExample.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Ory Login Example";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Use Face ID to sign in and verify it's you on this device.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = sh.ory.OryClientExample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		09D6E78E2FF2CE6600000517 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = OryClientExample/OryClientExample.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Ory Login Example";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Use Face ID to sign in and verify it's you on this device.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = sh.ory.OryClientExample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		09D6E7902FF2CE6600000517 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = sh.ory.OryClientExampleTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OryClientExample.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/OryClientExample";
+			};
+			name = Debug;
+		};
+		09D6E7912FF2CE6600000517 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = sh.ory.OryClientExampleTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OryClientExample.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/OryClientExample";
+			};
+			name = Release;
+		};
+		09D6E7932FF2CE6600000517 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = sh.ory.OryClientExampleUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = OryClientExample;
+			};
+			name = Debug;
+		};
+		09D6E7942FF2CE6600000517 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = sh.ory.OryClientExampleUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = OryClientExample;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		09D6E7662FF2CE6400000517 /* Build configuration list for PBXProject "OryClientExample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				09D6E78A2FF2CE6600000517 /* Debug */,
+				09D6E78B2FF2CE6600000517 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		09D6E78C2FF2CE6600000517 /* Build configuration list for PBXNativeTarget "OryClientExample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				09D6E78D2FF2CE6600000517 /* Debug */,
+				09D6E78E2FF2CE6600000517 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		09D6E78F2FF2CE6600000517 /* Build configuration list for PBXNativeTarget "OryClientExampleTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				09D6E7902FF2CE6600000517 /* Debug */,
+				09D6E7912FF2CE6600000517 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		09D6E7922FF2CE6600000517 /* Build configuration list for PBXNativeTarget "OryClientExampleUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				09D6E7932FF2CE6600000517 /* Debug */,
+				09D6E7942FF2CE6600000517 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		09D6E7A12FF2CFAA00000517 /* XCLocalSwiftPackageReference "../.." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		0AF1FF032FF2CFAA00000517 /* XCRemoteSwiftPackageReference "FlowStacks" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/johnpatrickmorgan/FlowStacks.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.10.12;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		09D6E7A22FF2CFAA00000517 /* OryClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OryClient;
+		};
+		09D6E7A42FF2CFAA00000517 /* OryClientTestDoubles */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OryClientTestDoubles;
+		};
+		0AF1FF022FF2CFAA00000517 /* FlowStacks */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0AF1FF032FF2CFAA00000517 /* XCRemoteSwiftPackageReference "FlowStacks" */;
+			productName = FlowStacks;
+		};
+		0AF1FF052FF2CFAA00000517 /* OryClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OryClient;
+		};
+		0AF1FF102FF2CFAA00000517 /* OryClientSimulator */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OryClientSimulator;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 09D6E7632FF2CE6400000517 /* Project object */;
+}
