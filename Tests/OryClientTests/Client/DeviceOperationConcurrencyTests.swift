@@ -48,7 +48,7 @@ struct DeviceOperationConcurrencyTests {
     private func pinKey() throws -> OryStoredDeviceKey {
         let vault = DevicePINVault(sealingKeyProvider: sealingKeys)
         let secret = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "1234")
-        return OryStoredDeviceKey(clientKeyID: "key", localKeyID: "local", pinSecret: secret, userVerification: .pin)
+        return OryStoredDeviceKey(clientKeyID: "key", localKeyID: "local", pinSecret: secret, userVerification: .pin, identityID: "identity-1")
     }
 
     @Test("A second client cannot rotate while the first rotation is awaiting its response")
@@ -86,7 +86,7 @@ struct DeviceOperationConcurrencyTests {
     func removalPreservesReplacement(sameID: Bool) async throws {
         // Given a removal response arriving after storage has a replacement record.
         let store = InMemoryDeviceKeyStore(initial: try pinKey())
-        let replacement = OryStoredDeviceKey(clientKeyID: sameID ? "key" : "replacement", localKeyID: "new-local", userVerification: .none)
+        let replacement = OryStoredDeviceKey(clientKeyID: sameID ? "key" : "replacement", localKeyID: "new-local", userVerification: .none, identityID: "identity-1")
         let repository = FakeFrontendRepository(afterDeviceMutation: { try await store.store(replacement) })
         let client = makeClient(store: store, repository: repository)
 

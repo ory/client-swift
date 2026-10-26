@@ -29,6 +29,20 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
         return key.map { .enrolled($0.userVerification) } ?? .notEnrolled
     }
 
+    public func deviceEnrollment(for session: OrySession) async throws -> OryDeviceEnrollmentState {
+        let key: OryStoredDeviceKey?
+        do {
+            key = try await deviceKeyStore.enrolledKey()
+        } catch {
+            throw Self.storageError(error)
+        }
+        guard let key else { return .notEnrolled }
+        if let identityID = session.identity?.id, key.identityID != identityID {
+            return .enrolledForAnotherAccount
+        }
+        return .enrolled(key.userVerification)
+    }
+
     public func forgetDevice() async throws {
         try await withDeviceOperation {
             try await clearDeviceKey()
@@ -54,6 +68,7 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
 
             let token = try await requireSessionToken()
             let challenge = try await deviceAuthn.createDeviceEnrollmentChallenge(sessionToken: token)
+            try await requireNoKeyForAnotherAccount(challenge.identityID)
             let attestation = try await deviceAuthenticator.attestNewKey(challenge: challenge.nonce)
             let clientKeyID = try Self.attestedClientKeyID(attestation)
             let keyIDsAfterEnrollment = try await deviceAuthn.submitDeviceEnrollment(
@@ -69,7 +84,12 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
             }
 
             try await storeDeviceKey(
-                OryStoredDeviceKey(clientKeyID: clientKeyID, localKeyID: attestation.keyID, userVerification: .none)
+                OryStoredDeviceKey(
+                    clientKeyID: clientKeyID,
+                    localKeyID: attestation.keyID,
+                    userVerification: .none,
+                    identityID: challenge.identityID
+                )
             )
         }
     }
@@ -85,6 +105,7 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
 
             let token = try await requireSessionToken()
             let challenge = try await deviceAuthn.createDeviceEnrollmentChallenge(sessionToken: token)
+            try await requireNoKeyForAnotherAccount(challenge.identityID)
             // A biometric key attests the bare nonce, exactly like a plain key — there is no
             // transport key or sealed secret; the biometric gate lives entirely on the client.
             let attestation = try await deviceAuthenticator.attestNewKey(challenge: challenge.nonce)
@@ -108,7 +129,12 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
                 }
 
                 try await storeDeviceKey(
-                    OryStoredDeviceKey(clientKeyID: clientKeyID, localKeyID: attestation.keyID, userVerification: .platform)
+                    OryStoredDeviceKey(
+                        clientKeyID: clientKeyID,
+                        localKeyID: attestation.keyID,
+                        userVerification: .platform,
+                        identityID: challenge.identityID
+                    )
                 )
             } catch {
                 await biometricAuthenticator.removeEnrollment(keyID: attestation.keyID)
@@ -126,6 +152,7 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
             let token = try await requireSessionToken()
             let transportKey = pinVault.makeTransportKey()
             let challenge = try await deviceAuthn.createDeviceEnrollmentChallenge(sessionToken: token)
+            try await requireNoKeyForAnotherAccount(challenge.identityID)
             // A PIN-protected key attests over SHA256(nonce ‖ transport_public_key), not the bare
             // nonce, binding the HPKE transport key into the attestation the server verifies.
             let boundChallenge = pinVault.enrollmentChallenge(nonce: challenge.nonce, transportKey: transportKey)
@@ -148,6 +175,7 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
                 transportKey: transportKey,
                 clientKeyID: clientKeyID,
                 localKeyID: attestation.keyID,
+                identityID: challenge.identityID,
                 pin: pin
             )
         }
@@ -249,6 +277,9 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
             // requires AAL2 and surfaces `secondFactorRequired`.
             let transportKey = pinVault.makeTransportKey()
             let challenge = try await deviceAuthn.createDeviceEnrollmentChallenge(sessionToken: token)
+            if key.identityID != challenge.identityID {
+                throw OryClientError.deviceAuthenticationEnrolledForAnotherAccount
+            }
             // The possession signature covers nonce ‖ transport_public_key (raw concatenation, not
             // hashed — unlike enrollment), binding the fresh secret to this transport key.
             let signedChallenge = pinVault.rotationChallenge(nonce: challenge.nonce, transportKey: transportKey)
@@ -268,6 +299,7 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
                 transportKey: transportKey,
                 clientKeyID: key.clientKeyID,
                 localKeyID: key.localKeyID,
+                identityID: challenge.identityID,
                 pin: newPin
             )
         }
@@ -357,6 +389,9 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
     private func ensureAAL2Session(sessionToken: String, key: OryStoredDeviceKey, pin: String?) async throws -> (session: OrySession, token: String) {
         do {
             let current = try await session.currentSession(sessionToken: sessionToken)
+            if let identityID = current.identity?.id, key.identityID != identityID {
+                throw OryClientError.deviceAuthenticationEnrolledForAnotherAccount
+            }
             if current.authenticatorAssuranceLevel >= .aal2 {
                 return (current, sessionToken)
             }
@@ -381,6 +416,7 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
         transportKey: TransportKey,
         clientKeyID: String,
         localKeyID: String,
+        identityID: String,
         pin: String
     ) async throws {
         var pinSecret = try Array(pinVault.openSealedPINSecret(
@@ -394,7 +430,13 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
         let protected = try pinVault.protect(pinSecret: &pinSecret, pin: &pinBytes)
 
         try await storeDeviceKey(
-            OryStoredDeviceKey(clientKeyID: clientKeyID, localKeyID: localKeyID, pinSecret: protected, userVerification: .pin)
+            OryStoredDeviceKey(
+                clientKeyID: clientKeyID,
+                localKeyID: localKeyID,
+                pinSecret: protected,
+                userVerification: .pin,
+                identityID: identityID
+            )
         )
     }
 
@@ -485,6 +527,20 @@ extension OryClient: OryDeviceCapabilities, OryDeviceEnrollment, OryDeviceStepUp
             throw OryClientError.deviceAuthenticationNotEnrolled
         }
         return key
+    }
+
+    /// Throws ``OryClientError/deviceAuthenticationEnrolledForAnotherAccount`` when the stored key
+    /// belongs to an identity other than `identityID`.
+    private func requireNoKeyForAnotherAccount(_ identityID: String) async throws {
+        let existing: OryStoredDeviceKey?
+        do {
+            existing = try await deviceKeyStore.enrolledKey()
+        } catch {
+            throw Self.storageError(error)
+        }
+        if let existing, existing.identityID != identityID {
+            throw OryClientError.deviceAuthenticationEnrolledForAnotherAccount
+        }
     }
 
     private func withDeviceOperation<Result: Sendable>(

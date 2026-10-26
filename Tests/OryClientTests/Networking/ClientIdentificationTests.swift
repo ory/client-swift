@@ -38,7 +38,7 @@ struct ClientIdentificationTests {
         #expect(value == "ory-client-swift/\(ClientIdentification.version) (\(osName) \(os.majorVersion).\(os.minorVersion).\(os.patchVersion))")
     }
 
-    @Test("Every request carries the X-Ory-Client header, visible to the observer")
+    @Test("Every request carries the Ory-Client header, visible to the observer")
     func everyRequestCarriesHeader() async throws {
         // Given
         let client = URLSessionHTTPClient(baseURL: projectURL)
@@ -47,8 +47,8 @@ struct ClientIdentificationTests {
         let (urlRequest, outgoing, event) = try await client.makeURLRequest(resolved(sessionToken: "token"))
 
         // Then
-        #expect(urlRequest.value(forHTTPHeaderField: "X-Ory-Client") == ClientIdentification.headerValue)
-        #expect(outgoing.headers["X-Ory-Client"] == ClientIdentification.headerValue)
-        #expect(event.headers["X-Ory-Client"] == ClientIdentification.headerValue)
+        #expect(urlRequest.value(forHTTPHeaderField: "Ory-Client") == ClientIdentification.headerValue)
+        #expect(outgoing.headers["Ory-Client"] == ClientIdentification.headerValue)
+        #expect(event.headers["Ory-Client"] == ClientIdentification.headerValue)
     }
 }

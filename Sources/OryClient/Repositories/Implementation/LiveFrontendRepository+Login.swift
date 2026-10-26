@@ -3,8 +3,15 @@ import OrySDK
 
 extension LiveFrontendRepository {
 
-    func createLoginFlow() async throws -> OryFlow {
-        let response = try await gateway.send(CreateLoginFlowRequest())
+    func createLoginFlow(options: OryLoginFlowOptions, sessionToken: String?) async throws -> OryFlow {
+        let response = try await gateway.send(
+            CreateLoginFlowRequest(refresh: options.refresh, aal: options.aal, sessionToken: sessionToken)
+        )
+        return FlowMapper.login(try gateway.decoded(response))
+    }
+
+    func getLoginFlow(id: String) async throws -> OryFlow {
+        let response = try await gateway.send(GetLoginFlowRequest(id: id))
         return FlowMapper.login(try gateway.decoded(response))
     }
 

@@ -52,7 +52,9 @@ final class RecoveryViewModel {
         submitError = nil
         defer { isSubmitting = false }
         do {
-            switch try await client.submitRecoveryFlow(flow, values: values, pressing: action) {
+            // "Resend code" asks for a new code, so it is sent without the code the user typed.
+            let submitted = action == flow.resendCodeAction ? flow.makeValues() : values
+            switch try await client.submitRecoveryFlow(flow, values: submitted, pressing: action) {
             case let .success(result):
                 if let settings = result.settings {
                     state = .settings(SettingsViewModel(
@@ -69,8 +71,24 @@ final class RecoveryViewModel {
                 // A result added in a later OryClient release that this app does not handle yet.
                 submitError = "This step isn't supported in this version of the app."
             }
+        } catch OryClientError.flowExpired(let replacementFlowID) {
+            // The user took too long. Continue with the flow the server prepared — it explains
+            // what happened — or start a new one when it named none.
+            await restart(replacementFlowID: replacementFlowID)
         } catch {
             submitError = error.localizedDescription
+        }
+    }
+
+    private func restart(replacementFlowID: String?) async {
+        do {
+            if let replacementFlowID {
+                apply(try await client.getRecoveryFlow(id: replacementFlowID))
+            } else {
+                await start()
+            }
+        } catch {
+            await start()
         }
     }
 

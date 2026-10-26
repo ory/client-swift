@@ -19,24 +19,14 @@ struct SessionTokenOriginTests {
         typealias Response = Probe
     }
 
-    private struct URLRewriter: OryRequestInterceptor {
-        let url: URL
-        func intercept(_ request: OryOutgoingRequest) async throws -> OryOutgoingRequest {
-            var request = request
-            request.url = url
-            return request
-        }
-    }
-
     private let projectURL = URL(string: "https://example.ory")!
 
-    private func makeClient(request: [any OryRequestInterceptor] = []) -> URLSessionHTTPClient {
+    private func makeClient() -> URLSessionHTTPClient {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [RedirectStubProtocol.self]
         return URLSessionHTTPClient(
             baseURL: projectURL,
-            urlSession: URLSessionHTTPClient.makeSession(projectURL: projectURL, configuration: configuration),
-            requestInterceptors: request
+            urlSession: URLSessionHTTPClient.makeSession(projectURL: projectURL, configuration: configuration)
         )
     }
 
@@ -74,19 +64,6 @@ struct SessionTokenOriginTests {
         }
         await expectRefused {
             _ = try await client.send(ProbeRequest(url: URL(string: "https://example.ory:8443/x")!, sessionToken: "real"))
-        }
-        #expect(RedirectStubProtocol.requests.isEmpty)
-    }
-
-    @Test("A request interceptor cannot move a token-bearing request to another origin")
-    func refusesInterceptorRewrite() async {
-        // Given an interceptor that points the request elsewhere
-        RedirectStubProtocol.reset()
-        let client = makeClient(request: [URLRewriter(url: URL(string: "https://elsewhere.example/x")!)])
-
-        // When / Then
-        await expectRefused {
-            _ = try await client.send(ProbeRequest(url: URL(string: "https://example.ory/x")!, sessionToken: "real"))
         }
         #expect(RedirectStubProtocol.requests.isEmpty)
     }

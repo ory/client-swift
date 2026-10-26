@@ -8,6 +8,11 @@ extension LiveFrontendRepository {
         return FlowMapper.recovery(try gateway.decoded(response))
     }
 
+    func getRecoveryFlow(id: String) async throws -> OryFlow {
+        let response = try await gateway.send(GetRecoveryFlowRequest(id: id))
+        return FlowMapper.recovery(try gateway.decoded(response))
+    }
+
     func submitRecovery(url submitURL: URL, fields: [String: String]) async throws -> RecoveryOutcome {
         let response = try await gateway.send(SubmitRecoveryRequest(actionURL: submitURL, fields: fields))
 

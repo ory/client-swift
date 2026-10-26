@@ -75,10 +75,16 @@ public protocol OryDeviceManagement: Sendable {
     /// Unlike ``removeDevice()``, this makes no network call and does not require the Secure
     /// Enclave key — use it to recover when the local key is stale (the server credential
     /// was removed elsewhere, or a reinstall wiped the Secure Enclave key while the stored
-    /// id lingered), or to reset before enrolling a different account on this device. After
+    /// id lingered), or to move device sign-in to a different account on this device. After
     /// this call ``OryDeviceEnrollment/deviceEnrollment()`` returns
     /// ``OryDeviceEnrollmentState/notEnrolled`` and the user can enroll again; the server
     /// credential, if any, is untouched.
+    ///
+    /// A device holds a key for one account at a time. When another account signs in on a
+    /// device set up by someone else, ``OryDeviceEnrollment/deviceEnrollment(for:)`` reports
+    /// ``OryDeviceEnrollmentState/enrolledForAnotherAccount`` and enrolling throws
+    /// ``OryClientError/deviceAuthenticationEnrolledForAnotherAccount``. Ask the user before
+    /// calling this method: it ends device sign-in for the previous account on this device.
     ///
     /// - Throws: ``OryClientError/storage(underlying:)`` if the store cannot be cleared.
     func forgetDevice() async throws

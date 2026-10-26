@@ -53,6 +53,14 @@ struct SettingsView: View {
         }
         .navigationTitle("Account settings")
         .task { await viewModel.start() }
+        .sheet(isPresented: Binding(
+            get: { viewModel.reauthentication != nil },
+            set: { if !$0 { viewModel.cancelReauthentication() } }
+        )) {
+            if let reauthentication = viewModel.reauthentication {
+                NavigationStack { LoginView(viewModel: reauthentication) }
+            }
+        }
     }
 }
 

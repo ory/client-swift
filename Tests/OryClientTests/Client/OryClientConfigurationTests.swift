@@ -22,7 +22,7 @@ struct OryClientConfigurationTests {
         let key = OryStoredDeviceKey(
             clientKeyID: "server-key",
             localKeyID: "local-key",
-            userVerification: .platform
+            userVerification: .platform, identityID: "identity-1"
         )
         let client = makeClient(deviceKeyStore: InMemoryDeviceKeyStore(initial: key))
 
@@ -36,7 +36,7 @@ struct OryClientConfigurationTests {
         let key = OryStoredDeviceKey(
             clientKeyID: "server-key",
             localKeyID: "local-key",
-            userVerification: .none
+            userVerification: .none, identityID: "identity-1"
         )
         let store = InMemoryDeviceKeyStore(initial: key)
         let client = makeClient(deviceKeyStore: store)

@@ -66,4 +66,11 @@ public enum OryDeviceEnrollmentState: Sendable, Hashable {
     /// This device has an enrolled key that verifies its holder as described by the associated
     /// ``OryDeviceUserVerification``.
     case enrolled(OryDeviceUserVerification)
+
+    /// This device has a key, but for another account than the given session's. Returned only by
+    /// ``OryDeviceEnrollment/deviceEnrollment(for:)``.
+    ///
+    /// Device sign-in and step-up are not available for the signed-in account, and enrolling
+    /// throws ``OryClientError/deviceAuthenticationEnrolledForAnotherAccount``.
+    case enrolledForAnotherAccount
 }

@@ -6,6 +6,8 @@ protocol RecoveryRepository: Sendable {
     /// Creates a native recovery flow and maps it to a renderable ``OryFlow``.
     func createRecoveryFlow() async throws -> OryFlow
 
+    func getRecoveryFlow(id: String) async throws -> OryFlow
+
     /// Submits the merged form to a recovery flow's action URL.
     func submitRecovery(url: URL, fields: [String: String]) async throws -> RecoveryOutcome
 }

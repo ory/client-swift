@@ -2,8 +2,12 @@ import Foundation
 
 extension OryClient: OryRegistrationFlow {
 
-    public func createRegistrationFlow() async throws -> OryFlow {
+    public func createRegistrationFlow(options: OryRegistrationFlowOptions) async throws -> OryFlow {
         try await registration.createRegistrationFlow()
+    }
+
+    public func getRegistrationFlow(id: String) async throws -> OryFlow {
+        try await registration.getRegistrationFlow(id: id)
     }
 
     public func submitRegistrationFlow(

@@ -8,6 +8,16 @@ struct CreateRegistrationFlowRequest: FrontendRequest {
     typealias Response = OrySDKAPI.RegistrationFlow
 }
 
+/// `GET /self-service/registration/flows?id=` — an existing registration flow by id, for example the
+/// replacement the server names when a flow expired.
+struct GetRegistrationFlowRequest: FrontendRequest {
+    let id: String
+
+    var method: HTTPMethod { .get }
+    var target: RequestTarget { .path(FrontendPath.registrationFlows, query: [URLQueryItem(name: "id", value: id)]) }
+    typealias Response = OrySDKAPI.RegistrationFlow
+}
+
 /// `POST <action>` — submits a registration flow's form. A 2xx yields a successful
 /// registration; a `400` re-renders the flow (decoded by the repository).
 struct SubmitRegistrationRequest: FrontendRequest {

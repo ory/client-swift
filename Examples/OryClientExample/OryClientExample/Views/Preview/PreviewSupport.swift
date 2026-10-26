@@ -74,28 +74,31 @@ struct PreviewOryClient: OryClientProtocol {
     func currentSession() async throws -> OrySession { try currentSessionResult.get() }
     func logout() async throws {}
 
-    func createLoginFlow() async throws -> OryFlow { try makeFlow() }
+    func createLoginFlow(options: OryLoginFlowOptions) async throws -> OryFlow { try makeFlow() }
+    func getLoginFlow(id: String) async throws -> OryFlow { try makeFlow() }
     func submitLoginFlow(_ flow: OryFlow, values: OryFormValues, pressing action: OryInputField) async throws -> OryFlowResult<OryAuthenticatedSession> {
         .pending(self.flow)
     }
 
-    func createRegistrationFlow() async throws -> OryFlow { try makeFlow() }
+    func createRegistrationFlow(options: OryRegistrationFlowOptions) async throws -> OryFlow { try makeFlow() }
+    func getRegistrationFlow(id: String) async throws -> OryFlow { try makeFlow() }
     func submitRegistrationFlow(_ flow: OryFlow, values: OryFormValues, pressing action: OryInputField) async throws -> OryFlowResult<OryRegistrationResult> {
         .pending(self.flow)
     }
 
-    func createVerificationFlow() async throws -> OryFlow { try makeFlow() }
+    func createVerificationFlow(options: OryVerificationFlowOptions) async throws -> OryFlow { try makeFlow() }
     func getVerificationFlow(id: String) async throws -> OryFlow { try makeFlow() }
     func submitVerificationFlow(_ flow: OryFlow, values: OryFormValues, pressing action: OryInputField) async throws -> OryFlowResult<OryVerificationResult> {
         .pending(self.flow)
     }
 
-    func createRecoveryFlow() async throws -> OryFlow { try makeFlow() }
+    func createRecoveryFlow(options: OryRecoveryFlowOptions) async throws -> OryFlow { try makeFlow() }
+    func getRecoveryFlow(id: String) async throws -> OryFlow { try makeFlow() }
     func submitRecoveryFlow(_ flow: OryFlow, values: OryFormValues, pressing action: OryInputField) async throws -> OryFlowResult<OryRecoveryResult> {
         .pending(self.flow)
     }
 
-    func createSettingsFlow() async throws -> OryFlow { try makeFlow() }
+    func createSettingsFlow(options: OrySettingsFlowOptions) async throws -> OryFlow { try makeFlow() }
     func getSettingsFlow(id: String) async throws -> OryFlow { try makeFlow() }
     func submitSettingsFlow(_ flow: OryFlow, values: OryFormValues, pressing action: OryInputField) async throws -> OryFlowResult<OrySettingsResult> {
         .pending(self.flow)

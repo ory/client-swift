@@ -5,9 +5,10 @@ public protocol OryVerificationFlow: Sendable {
 
     /// Starts a verification flow (to verify an email or phone).
     ///
+    /// - Parameter options: How the flow starts. Call ``createVerificationFlow()`` for the defaults.
     /// - Returns: A renderable verification ``OryFlow``.
     /// - Throws: An ``OryClientError`` on network or server failure.
-    func createVerificationFlow() async throws -> OryFlow
+    func createVerificationFlow(options: OryVerificationFlowOptions) async throws -> OryFlow
 
     /// Fetches an existing verification flow by id — for example the one a registration
     /// surfaced in ``OryRegistrationResult/verification``.
@@ -37,4 +38,14 @@ public protocol OryVerificationFlow: Sendable {
         values: OryFormValues,
         pressing action: OryInputField
     ) async throws -> OryFlowResult<OryVerificationResult>
+}
+
+extension OryVerificationFlow {
+
+    /// Starts a verification flow with default options.
+    ///
+    /// See ``createVerificationFlow(options:)``.
+    public func createVerificationFlow() async throws -> OryFlow {
+        try await createVerificationFlow(options: OryVerificationFlowOptions())
+    }
 }

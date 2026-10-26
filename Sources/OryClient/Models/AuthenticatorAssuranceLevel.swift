@@ -36,7 +36,11 @@ public enum OryAuthenticatorAssuranceLevel: String, Sendable, Hashable, Comparab
     /// A hardware-bound authentication factor was used.
     case aal3
 
-    /// A level this version of the client does not recognize, sent by a newer backend.
+    /// A level the session did not report, or one this version of the client does not
+    /// recognize, sent by a newer backend.
+    ///
+    /// It ranks below ``aal0``, so a check such as `level < .aal2` treats the session as the
+    /// weakest one and asks for a step-up instead of granting access.
     case unknown
 
     public static func < (lhs: OryAuthenticatorAssuranceLevel, rhs: OryAuthenticatorAssuranceLevel) -> Bool {

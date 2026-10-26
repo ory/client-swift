@@ -17,12 +17,12 @@ public struct SuccessfulNativeRegistration: Sendable, Codable, Hashable {
 
     /** Contains a list of actions, that could follow this flow  It can, for example, this will contain a reference to the verification flow, created as part of the user's registration or the token of the session. */
     public var continueWith: [ContinueWith]?
-    public var identity: Identity
+    public var identity: Identity?
     public var session: Session?
     /** The Session Token  This field is only set when the session hook is configured as a post-registration hook.  A session token is equivalent to a session cookie, but it can be sent in the HTTP Authorization Header:  Authorization: bearer ${session-token}  The session token is only issued for API flows, not for Browser flows! */
     public var sessionToken: String?
 
-    public init(continueWith: [ContinueWith]? = nil, identity: Identity, session: Session? = nil, sessionToken: String? = nil) {
+    public init(continueWith: [ContinueWith]? = nil, identity: Identity? = nil, session: Session? = nil, sessionToken: String? = nil) {
         self.continueWith = continueWith
         self.identity = identity
         self.session = session
@@ -41,7 +41,7 @@ public struct SuccessfulNativeRegistration: Sendable, Codable, Hashable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(continueWith, forKey: .continueWith)
-        try container.encode(identity, forKey: .identity)
+        try container.encodeIfPresent(identity, forKey: .identity)
         try container.encodeIfPresent(session, forKey: .session)
         try container.encodeIfPresent(sessionToken, forKey: .sessionToken)
     }

@@ -17,7 +17,7 @@ public struct UpdateLoginFlowWithCodeMethod: Sendable, Codable, Hashable {
 
     /** Address is the address to send the code to, in case that there are multiple addresses. This field is only used in two-factor flows and is ineffective for passwordless flows. */
     public var address: String?
-    /** Code is the 6 digits code sent to the user */
+    /** Code is the one-time code sent to the user */
     public var code: String?
     /** CSRFToken is the anti-CSRF token */
     public var csrfToken: String

@@ -5,7 +5,7 @@ import Foundation
 enum ClientIdentification {
 
     /// The package version. Must equal the release tag of the version being published.
-    static let version = "0.1.0"
+    static let version = "0.2.0"
 
     /// For example `ory-client-swift/0.1.0 (iOS 18.2.0)`.
     static let headerValue = "ory-client-swift/\(version) (\(operatingSystem))"

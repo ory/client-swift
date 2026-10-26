@@ -9,23 +9,13 @@ extension OryEnrolledDevice {
             clientKeyID: record.clientKeyID,
             name: record.deviceName,
             enrolledAt: record.createdAt,
-            platform: Platform(wireValue: record.deviceType),
+            platform: Platform(rawValue: record.deviceType),
             userVerification: OryDeviceUserVerification(wireValue: record.userVerification),
             // Only "locked" is actionable for the app; any other state means the key is in
             // normal service as far as a device list is concerned.
             isLocked: record.state == "locked",
             isCurrentDevice: record.clientKeyID == currentKeyID
         )
-    }
-}
-
-private extension OryEnrolledDevice.Platform {
-    init(wireValue: String) {
-        switch wireValue {
-        case "iOS": self = .iOS
-        case "Android": self = .android
-        default: self = .unknown(wireValue)
-        }
     }
 }
 

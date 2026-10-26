@@ -25,7 +25,8 @@ public enum OryDeviceUserVerification: String, Sendable, Codable {
 ///
 /// `userVerification` records how the key authenticates its holder, matching the mode it was
 /// enrolled with. `pinSecret` is present only for a `.pin` key. Only a `.pin` or `.platform`
-/// key can perform passwordless 1FA login; a `.none` key is step-up only.
+/// key can perform passwordless 1FA login; a `.none` key is step-up only. `identityID` names
+/// the account the key belongs to: a device holds a key for one account at a time.
 ///
 /// Treat the value as opaque in a custom ``OryDeviceKeyStore``: persist and return it
 /// unchanged (it is `Codable`), and never alter its fields — ``OryClient`` owns their
@@ -33,13 +34,11 @@ public enum OryDeviceUserVerification: String, Sendable, Codable {
 public struct OryStoredDeviceKey: Sendable, Codable, Equatable {
 
     /// The layout this build writes and can read back.
-    static let currentSchemaVersion = 1
+    static let currentSchemaVersion = 2
 
     /// The layout of this record. A store that reads a version it does not know treats the
     /// record as absent, so an app downgrade — or a future change to what is persisted —
     /// leads to re-enrollment instead of an unreadable state.
-    ///
-    /// Records written before versioning existed decode as version 1, which is what they are.
     public private(set) var schemaVersion: Int = OryStoredDeviceKey.currentSchemaVersion
 
     /// The server-side credential identifier, sent when signing in and removing the key.
@@ -55,30 +54,23 @@ public struct OryStoredDeviceKey: Sendable, Codable, Equatable {
     /// How the key authenticates its holder.
     public internal(set) var userVerification: OryDeviceUserVerification
 
+    /// The id of the identity the key was enrolled for.
+    public let identityID: String
+
     /// Creates a stored key. Provided for tests; ``OryClient`` creates these during
     /// enrollment.
     public init(
         clientKeyID: String,
         localKeyID: String,
         pinSecret: OryProtectedPINSecret? = nil,
-        userVerification: OryDeviceUserVerification
+        userVerification: OryDeviceUserVerification,
+        identityID: String
     ) {
         self.clientKeyID = clientKeyID
         self.localKeyID = localKeyID
         self.pinSecret = pinSecret
         self.userVerification = userVerification
-    }
-
-    // Written by hand rather than synthesized: Swift's generated decoder ignores a property's
-    // default value and fails on a missing key, which would make every record enrolled before
-    // versioning existed unreadable.
-    public init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        schemaVersion = try container.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1
-        clientKeyID = try container.decode(String.self, forKey: .clientKeyID)
-        localKeyID = try container.decode(String.self, forKey: .localKeyID)
-        pinSecret = try container.decodeIfPresent(OryProtectedPINSecret.self, forKey: .pinSecret)
-        userVerification = try container.decode(OryDeviceUserVerification.self, forKey: .userVerification)
+        self.identityID = identityID
     }
 }
 

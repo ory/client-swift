@@ -14,7 +14,10 @@ struct OryErrorEnvelope {
     /// On an expired flow, the id of the replacement flow the server has already created.
     let useFlowID: String?
 
-    static let empty = OryErrorEnvelope(id: nil, messages: [], useFlowID: nil)
+    /// Where the server wants a browser to continue, when the flow cannot continue in the app.
+    let redirectBrowserTo: URL?
+
+    static let empty = OryErrorEnvelope(id: nil, messages: [], useFlowID: nil, redirectBrowserTo: nil)
 }
 
 /// Parses user-facing messages out of an Ory error body.
@@ -57,7 +60,8 @@ enum ErrorMapper {
         return OryErrorEnvelope(
             id: generic?.error?.id.map(OryErrorID.init(rawValue:)),
             messages: messages(from: data),
-            useFlowID: generic?.useFlowID
+            useFlowID: generic?.useFlowID,
+            redirectBrowserTo: generic?.redirectBrowserTo.flatMap(URL.init(string:))
         )
     }
 }
@@ -81,14 +85,17 @@ private struct FlowErrorBody: Decodable {
 }
 
 /// The subset of a generic Ory error body. An expired flow adds `use_flow_id` alongside the
-/// error object, naming the flow the server created to replace the expired one.
+/// error object, naming the flow the server created to replace the expired one; a flow that
+/// must continue in a browser adds `redirect_browser_to`.
 private struct GenericErrorBody: Decodable {
     let error: Inner?
     let useFlowID: String?
+    let redirectBrowserTo: String?
 
     enum CodingKeys: String, CodingKey {
         case error
         case useFlowID = "use_flow_id"
+        case redirectBrowserTo = "redirect_browser_to"
     }
 
     struct Inner: Decodable {

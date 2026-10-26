@@ -50,6 +50,9 @@ struct FrontendGateway: Sendable {
         case 429:
             return .rateLimited(retryAfter: Self.retryAfter(from: response.headers))
         default:
+            if response.status == 422, let redirectURL = envelope.redirectBrowserTo {
+                return .browserLocationChangeRequired(redirectURL: redirectURL)
+            }
             return .server(status: response.status, id: envelope.id, messages: envelope.messages)
         }
     }

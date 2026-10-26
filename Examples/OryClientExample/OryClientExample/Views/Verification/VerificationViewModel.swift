@@ -53,7 +53,9 @@ final class VerificationViewModel {
         submitError = nil
         defer { isSubmitting = false }
         do {
-            switch try await client.submitVerificationFlow(flow, values: values, pressing: action) {
+            // "Resend code" asks for a new code, so it is sent without the code the user typed.
+            let submitted = action == flow.resendCodeAction ? flow.makeValues() : values
+            switch try await client.submitVerificationFlow(flow, values: submitted, pressing: action) {
             case .success:
                 state = .verified
             case let .pending(nextFlow):

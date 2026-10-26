@@ -28,7 +28,7 @@ struct OryClientDeviceListTests {
         storedKeyID: String? = nil
     ) -> (OryClient, FakeFrontendRepository, InMemoryDeviceKeyStore) {
         let keyStore = storedKeyID.map {
-            InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: $0, localKeyID: "apple", userVerification: .pin))
+            InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: $0, localKeyID: "apple", userVerification: .pin, identityID: "identity-1"))
         } ?? InMemoryDeviceKeyStore()
         let frontend = FakeFrontendRepository(deviceKeyRecords: records)
         let client = OryClient(
@@ -76,6 +76,18 @@ struct OryClientDeviceListTests {
         #expect(devices[1].isLocked)
     }
 
+    @Test("the platform names Ory sends match the platform constants")
+    func mapsKnownPlatforms() async throws {
+        // Given
+        let (client, _, _) = makeClient(records: [record(id: "a", deviceType: "iOS"), record(id: "b", deviceType: "Android")])
+
+        // When
+        let devices = try await client.enrolledDevices()
+
+        // Then
+        #expect(devices.map(\.platform) == [.iOS, .android])
+    }
+
     @Test("a platform or state this build does not know does not hide the device")
     func tolerartesUnknownValues() async throws {
         let (client, _, _) = makeClient(
@@ -85,7 +97,7 @@ struct OryClientDeviceListTests {
         let devices = try await client.enrolledDevices()
 
         #expect(devices.count == 1)
-        #expect(devices[0].platform == .unknown("Fuchsia"))
+        #expect(devices[0].platform == OryEnrolledDevice.Platform(rawValue: "Fuchsia"))
         // An unrecognized verification degrades to the weakest reading rather than claiming a
         // protection the client cannot describe, and an unknown state is not "locked".
         #expect(devices[0].userVerification == OryDeviceUserVerification.none)
@@ -128,7 +140,7 @@ struct OryClientDeviceListTests {
             localKeyID: "apple",
             pinSecret: try DevicePINVault(sealingKeyProvider: InsecureEphemeralPINSealingKeyProvider())
                 .protect(pinSecret: Data(repeating: 1, count: 32), pinString: "0000"),
-            userVerification: .pin
+            userVerification: .pin, identityID: "identity-1"
         ))
         let frontend = FakeFrontendRepository(
             removalFlow: .failure(.secondFactorRequired),

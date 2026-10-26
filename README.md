@@ -24,11 +24,11 @@ For the SwiftUI example and its device-authentication setup, start with
 Add the package in Xcode (*File ▸ Add Package Dependencies…*) or in `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/ory/sdk-swift.git", .upToNextMinor(from: "0.1.0"))
+.package(url: "https://github.com/ory/sdk-swift.git", .upToNextMinor(from: "0.2.0"))
 ```
 
 Until 1.0, a minor release may contain breaking changes, so pin to the minor version:
-`from: "0.1.0"` would also resolve `0.2.0`. In Xcode, set the dependency rule to
+`from: "0.2.0"` would also resolve `0.3.0`. In Xcode, set the dependency rule to
 **Up to Next Minor Version**.
 
 Then add `OryClient` to your target's dependencies.
@@ -80,6 +80,20 @@ case .pending(let next):
     // A result added in a later OryClient release.
     showUnsupportedStep()
 }
+```
+
+When the project offers several methods — for example a password and a one-time code —
+`flow.availableMethods` lists them. Show one at a time: render every node and action whose group
+is the chosen method or is not in `availableMethods`. The second part keeps shared and
+step-navigation controls, such as the identifier and the Continue button of an identifier-first
+step, which belong to no method.
+
+```swift
+let methods = flow.availableMethods
+let chosenMethod = methods.first   // or the one picked in your method picker
+let isShown = { (group: OryNodeGroup) in !methods.contains(group) || group == chosenMethod }
+let fields = flow.nodes.filter { isShown($0.group) }
+let buttons = flow.actions.filter { isShown($0.group) }
 ```
 
 `createRegistrationFlow()` / `submitRegistrationFlow(_:values:pressing:)` work the same way, as
@@ -159,9 +173,11 @@ new cases are added as Ory grows new conditions:
 do {
     try await ory.enrollDevice(name: deviceName, protection: .pin(pin))
 } catch OryClientError.secondFactorRequired {
-    // Valid session, but this change needs a second factor first.
+    // Valid session, but this change needs a second factor first. Start one with
+    // createLoginFlow(options: OryLoginFlowOptions(aal: .aal2)).
 } catch OryClientError.reauthenticationRequired {
-    // Still signed in, but the session is too old for a privileged change. Ask again.
+    // Still signed in, but the session is too old for a privileged change. Ask again with
+    // createLoginFlow(options: OryLoginFlowOptions(refresh: true)).
 } catch OryClientError.flowExpired(let replacementFlowID) {
     // Flows are short-lived. Start over; `replacementFlowID` names the one Ory prepared.
 } catch let OryClientError.server(status, id, messages) {
@@ -302,7 +318,7 @@ strict validation if the entitlement is set to `development`. See Apple's
   build from the same source commit. With OEL, run a recent Kratos version. Device
   authentication is not available in open-source Ory Kratos.
 - **Support for older releases.** Fixes ship in new releases only, so update to the latest
-  version. Every request carries an `X-Ory-Client` header with the client version, so Ory can
+  version. Every request carries an `Ory-Client` header with the client version, so Ory can
   see which versions are still in use. A backend change that breaks an older release is
   announced in the changelog first.
 

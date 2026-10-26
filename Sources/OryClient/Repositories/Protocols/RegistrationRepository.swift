@@ -6,6 +6,8 @@ protocol RegistrationRepository: Sendable {
     /// Creates a native registration flow and maps it to a renderable ``OryFlow``.
     func createRegistrationFlow() async throws -> OryFlow
 
+    func getRegistrationFlow(id: String) async throws -> OryFlow
+
     /// Submits the merged form to a registration flow's action URL.
     func submitRegistration(url: URL, fields: [String: String], sessionToken: String?) async throws -> RegistrationOutcome
 }

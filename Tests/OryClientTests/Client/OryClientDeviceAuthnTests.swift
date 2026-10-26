@@ -93,7 +93,7 @@ struct OryClientDeviceAuthnTests {
         let authenticator = FakeDeviceKeyAuthenticator(attestation: .success(
             OryDeviceKeyAttestation(keyID: "local", attestation: Data([0xa0]))
         ))
-        let previous = OryStoredDeviceKey(clientKeyID: "previous", localKeyID: "previous-local", userVerification: .none)
+        let previous = OryStoredDeviceKey(clientKeyID: "previous", localKeyID: "previous-local", userVerification: .none, identityID: "identity-1")
         let keyStore = InMemoryDeviceKeyStore(initial: previous)
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore, authenticator: authenticator)
 
@@ -124,7 +124,7 @@ struct OryClientDeviceAuthnTests {
             submitEnrollment: .success(["another-device"]),
             pinClientKeyID: "another-device"
         )
-        let previous = OryStoredDeviceKey(clientKeyID: "previous", localKeyID: "previous-local", userVerification: .none)
+        let previous = OryStoredDeviceKey(clientKeyID: "previous", localKeyID: "previous-local", userVerification: .none, identityID: "identity-1")
         let keyStore = InMemoryDeviceKeyStore(initial: previous)
         let authenticator = FakeDeviceKeyAuthenticator(attestation: .success(
             OryDeviceKeyAttestation(keyID: "apple-local-handle", attestation: Fixture.deviceAttestation)
@@ -167,7 +167,7 @@ struct OryClientDeviceAuthnTests {
 
         // Then the new server id is paired with the local key handle
         let stored = await keyStore.stored
-        #expect(stored == OryStoredDeviceKey(clientKeyID: Fixture.attestedClientKeyID, localKeyID: "apple-key", userVerification: .none))
+        #expect(stored == OryStoredDeviceKey(clientKeyID: Fixture.attestedClientKeyID, localKeyID: "apple-key", userVerification: .none, identityID: "identity-1"))
         #expect(await frontend.submittedDeviceName == "My iPhone")
     }
 
@@ -246,7 +246,7 @@ struct OryClientDeviceAuthnTests {
             loginChallenge: .success(.fake()),
             submitDeviceLogin: .success(.fake(token: "ory_st_aal2"))
         )
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv-key", localKeyID: "apple-key", userVerification: .none))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv-key", localKeyID: "apple-key", userVerification: .none, identityID: "identity-1"))
         let (client, storage, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
         let authenticated = try await client.authenticateWithDevice()
@@ -261,7 +261,7 @@ struct OryClientDeviceAuthnTests {
         let frontend = FakeFrontendRepository(
             currentSession: .success(Sample.session(assuranceLevel: .aal2))
         )
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv-key", localKeyID: "apple-key", userVerification: .none))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv-key", localKeyID: "apple-key", userVerification: .none, identityID: "identity-1"))
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
         let authenticated = try await client.authenticateWithDevice()
@@ -294,7 +294,7 @@ struct OryClientDeviceAuthnTests {
             loginChallenge: .success(.fake()),
             submitDeviceLogin: .success(.fake(token: "ory_st_aal2"))
         )
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv-key", localKeyID: "apple-key", userVerification: .none))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv-key", localKeyID: "apple-key", userVerification: .none, identityID: "identity-1"))
         let (client, storage, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
         let authenticated = try await client.authenticateWithDevice()
@@ -307,7 +307,7 @@ struct OryClientDeviceAuthnTests {
     @Test("authenticateWithDevice on a PIN key needing AAL2 throws pinRequired")
     func stepUpPINKeyNeedsPIN() async throws {
         let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "1234")
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(currentSession: .failure(.secondFactorRequired))
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
@@ -326,7 +326,7 @@ struct OryClientDeviceAuthnTests {
     func stepUpWithPINSubmitsProof() async throws {
         let secret = Data(repeating: 5, count: 32)
         let protected = try vault.protect(pinSecret: secret, pinString: "1234")
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(
             currentSession: .failure(.secondFactorRequired),
             loginChallenge: .success(.fake()),
@@ -350,7 +350,7 @@ struct OryClientDeviceAuthnTests {
         // toward pin_max_attempts — rejects it.
         let secret = Data(repeating: 1, count: 32)
         let protected = try vault.protect(pinSecret: secret, pinString: "1234")
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(
             currentSession: .failure(.secondFactorRequired),
             loginChallenge: .success(.fake()),
@@ -378,7 +378,7 @@ struct OryClientDeviceAuthnTests {
     func stepUpServerRejectionWithoutPINStaysServerError() async throws {
         // The same 400 can mean a bad signature on a signature-only key; only the PIN
         // paths may reinterpret it as a wrong PIN.
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .none))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .none, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(
             currentSession: .failure(.secondFactorRequired),
             loginChallenge: .success(.fake()),
@@ -401,7 +401,7 @@ struct OryClientDeviceAuthnTests {
 
     @Test("authenticateWithDevice(pin:) ignores the PIN on a signature-only key")
     func stepUpWithPINOnPlainKey() async throws {
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .none))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .none, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(
             currentSession: .failure(.secondFactorRequired),
             loginChallenge: .success(.fake()),
@@ -428,7 +428,7 @@ struct OryClientDeviceAuthnTests {
             removalFlow: .success(URL(string: "https://ory.test/settings")!),
             submitRemoval: .success(())
         )
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv-key", localKeyID: "apple-key", userVerification: .none))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv-key", localKeyID: "apple-key", userVerification: .none, identityID: "identity-1"))
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
         try await client.removeDevice()
@@ -442,7 +442,7 @@ struct OryClientDeviceAuthnTests {
 
     @Test("deviceEnrollment reflects whether a key is stored")
     func deviceEnrollmentReflectsStorage() async throws {
-        let (enrolled, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", userVerification: .none)))
+        let (enrolled, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", userVerification: .none, identityID: "identity-1")))
         let (notEnrolled, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: nil))
 
         #expect(try await enrolled.deviceEnrollment() == .enrolled(.none))
@@ -472,7 +472,7 @@ struct OryClientDeviceAuthnTests {
     func loginWithPINSubmitsProof() async throws {
         let secret = Data(repeating: 5, count: 32)
         let protected = try vault.protect(pinSecret: secret, pinString: "1234")
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(
             loginChallenge: .success(.fake()),
             submitDeviceLogin: .success(.fake(token: "ory_st_pin"))
@@ -494,7 +494,7 @@ struct OryClientDeviceAuthnTests {
         // server's pin_max_attempts counter advances; the client never judges the PIN.
         let secret = Data(repeating: 1, count: 32)
         let protected = try vault.protect(pinSecret: secret, pinString: "1234")
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(
             loginChallenge: .success(.fake()),
             submitDeviceLogin: .failure(Self.serverRejectsProof)
@@ -518,7 +518,7 @@ struct OryClientDeviceAuthnTests {
     @Test("forgetDevice deletes the sealing key behind stored PIN material")
     func forgetDeletesSealingKey() async throws {
         let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "1234")
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let (client, _, _) = makeClient(keyStore: keyStore)
 
         try await client.forgetDevice()
@@ -532,7 +532,7 @@ struct OryClientDeviceAuthnTests {
     @Test("re-enrolling a PIN deletes the sealing key of the replaced material")
     func reenrollDeletesReplacedSealingKey() async throws {
         let oldProtected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "0000")
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "old", localKeyID: "apple", pinSecret: oldProtected, userVerification: .pin))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "old", localKeyID: "apple", pinSecret: oldProtected, userVerification: .pin, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(pinSecretToSeal: Data(repeating: 9, count: 32), pinClientKeyID: Fixture.attestedClientKeyID)
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
@@ -548,8 +548,8 @@ struct OryClientDeviceAuthnTests {
     @Test("deviceEnrollment reports PIN only for a key that carries PIN material")
     func deviceEnrollmentReflectsPINKey() async throws {
         let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "1234")
-        let (pinKey, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", pinSecret: protected, userVerification: .pin)))
-        let (plainKey, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", userVerification: .none)))
+        let (pinKey, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", pinSecret: protected, userVerification: .pin, identityID: "identity-1")))
+        let (plainKey, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", userVerification: .none, identityID: "identity-1")))
         let (noKey, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: nil))
 
         #expect(try await pinKey.deviceEnrollment() == .enrolled(.pin))
@@ -559,7 +559,7 @@ struct OryClientDeviceAuthnTests {
 
     @Test("loginWithDevice throws notEnrolled for a possession-only key", arguments: [nil, "1234"] as [String?])
     func loginWithPossessionOnlyKey(pin: String?) async throws {
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .none))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .none, identityID: "identity-1"))
         let frontend = FakeFrontendRepository()
         let (client, _, _) = makeClient(token: nil, frontend: frontend, keyStore: keyStore)
 
@@ -582,7 +582,7 @@ struct OryClientDeviceAuthnTests {
         // locally invented deviceAuthenticationPINRequired.
         let oldProtected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "0000")
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: oldProtected, userVerification: .pin)
+            initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: oldProtected, userVerification: .pin, identityID: "identity-1")
         )
         let frontend = FakeFrontendRepository(
             currentSession: .failure(.secondFactorRequired),
@@ -611,7 +611,7 @@ struct OryClientDeviceAuthnTests {
         let freshSecret = Data(repeating: 7, count: 32)
         let oldProtected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "0000")
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: oldProtected, userVerification: .pin)
+            initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: oldProtected, userVerification: .pin, identityID: "identity-1")
         )
         let frontend = FakeFrontendRepository(
             currentSession: .failure(.secondFactorRequired),
@@ -633,7 +633,7 @@ struct OryClientDeviceAuthnTests {
                 clientKeyID: "srv",
                 localKeyID: "apple",
                 pinSecret: try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "0000"),
-                userVerification: .pin
+                userVerification: .pin, identityID: "identity-1"
             )
         )
         // Already AAL2, so the only assertion made is the rotation one under test.
@@ -657,7 +657,7 @@ struct OryClientDeviceAuthnTests {
 
     @Test("resetDevicePIN throws notEnrolled when the stored key has no PIN")
     func resetPINNoPINKey() async throws {
-        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .none))
+        let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .none, identityID: "identity-1"))
         let frontend = FakeFrontendRepository()
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
@@ -689,7 +689,7 @@ struct OryClientDeviceAuthnTests {
                 clientKeyID: "srv",
                 localKeyID: "apple",
                 pinSecret: try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "0000"),
-                userVerification: .pin
+                userVerification: .pin, identityID: "identity-1"
             )
         )
         let (client, _, _) = makeClient(token: nil, keyStore: keyStore)
@@ -754,7 +754,7 @@ struct OryClientDeviceAuthnTests {
         try await client.enrollDevice(name: "My iPhone", protection: .biometrics)
 
         let stored = try #require(await keyStore.stored)
-        #expect(stored == OryStoredDeviceKey(clientKeyID: Fixture.attestedClientKeyID, localKeyID: "apple-key", userVerification: .platform))
+        #expect(stored == OryStoredDeviceKey(clientKeyID: Fixture.attestedClientKeyID, localKeyID: "apple-key", userVerification: .platform, identityID: "identity-1"))
         #expect(await frontend.submittedUserVerification == .platform)
         // A biometric key has no PIN transport key and no sealed secret.
         #expect(await frontend.submittedTransportPublicKey == nil)
@@ -847,7 +847,7 @@ struct OryClientDeviceAuthnTests {
     @Test("loginWithDevice on a biometric key signs in with the signature only and stores the token")
     func biometricLoginSignatureOnly() async throws {
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform)
+            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform, identityID: "identity-1")
         )
         let frontend = FakeFrontendRepository(submitDeviceLogin: .success(.fake(token: "ory_st_bio")))
         let biometric = FakeBiometricAuthenticator()
@@ -868,7 +868,7 @@ struct OryClientDeviceAuthnTests {
     func loginWithoutPINOnPINKey() async throws {
         let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "0000")
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin)
+            initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1")
         )
         let frontend = FakeFrontendRepository()
         let biometric = FakeBiometricAuthenticator()
@@ -887,7 +887,7 @@ struct OryClientDeviceAuthnTests {
     @Test("loginWithDevice(pin:) on a biometric key ignores the PIN and prompts biometrics")
     func biometricLoginIgnoresPIN() async throws {
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform)
+            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform, identityID: "identity-1")
         )
         let frontend = FakeFrontendRepository(submitDeviceLogin: .success(.fake(token: "ory_st_bio")))
         let biometric = FakeBiometricAuthenticator()
@@ -903,7 +903,7 @@ struct OryClientDeviceAuthnTests {
     @Test("loginWithDevice on a biometric key throws biometricsUnavailable without submitting")
     func biometricLoginUnavailable() async throws {
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform)
+            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform, identityID: "identity-1")
         )
         let frontend = FakeFrontendRepository()
         let (client, _, _) = makeClient(
@@ -925,7 +925,7 @@ struct OryClientDeviceAuthnTests {
     @Test("loginWithDevice on a biometric key surfaces a cancelled prompt without submitting")
     func biometricLoginCancelled() async throws {
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform)
+            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform, identityID: "identity-1")
         )
         let frontend = FakeFrontendRepository()
         let biometric = FakeBiometricAuthenticator(prompt: .failure(.deviceAuthenticationCancelled))
@@ -944,7 +944,7 @@ struct OryClientDeviceAuthnTests {
     func biometricLoginBiometricsChanged() async throws {
         // Given a biometric key whose binding no longer matches the device's biometrics.
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform)
+            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform, identityID: "identity-1")
         )
         let frontend = FakeFrontendRepository()
         let biometric = FakeBiometricAuthenticator(evaluate: .failure(.deviceAuthenticationBiometricsChanged))
@@ -968,7 +968,7 @@ struct OryClientDeviceAuthnTests {
     @Test("authenticateWithDevice on a biometric key steps a below-AAL2 session up and prompts biometrics")
     func biometricStepUp() async throws {
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform)
+            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform, identityID: "identity-1")
         )
         let frontend = FakeFrontendRepository(
             currentSession: .success(Sample.session(assuranceLevel: .aal1)),
@@ -990,7 +990,7 @@ struct OryClientDeviceAuthnTests {
     func biometricStepUpBiometricsChanged() async throws {
         // Given an AAL1 session and a biometric key whose binding no longer matches.
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform)
+            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform, identityID: "identity-1")
         )
         let frontend = FakeFrontendRepository(currentSession: .success(Sample.session(assuranceLevel: .aal1)))
         let biometric = FakeBiometricAuthenticator(evaluate: .failure(.deviceAuthenticationBiometricsChanged))
@@ -1012,7 +1012,7 @@ struct OryClientDeviceAuthnTests {
     func forgetDeviceRemovesBiometricBinding() async throws {
         // Given an enrolled biometric key.
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform)
+            initial: OryStoredDeviceKey(clientKeyID: "srv-bio", localKeyID: "apple", userVerification: .platform, identityID: "identity-1")
         )
         let biometric = FakeBiometricAuthenticator()
         let (client, _, _) = makeClient(keyStore: keyStore, biometric: biometric)
@@ -1030,7 +1030,7 @@ struct OryClientDeviceAuthnTests {
         // Given an enrolled PIN key.
         let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "0000")
         let keyStore = InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin)
+            initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1")
         )
         let biometric = FakeBiometricAuthenticator()
         let (client, _, _) = makeClient(keyStore: keyStore, biometric: biometric)
@@ -1048,10 +1048,10 @@ struct OryClientDeviceAuthnTests {
     func deviceEnrollmentReflectsBiometricKey() async throws {
         let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "0000")
         let (bio, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", userVerification: .platform)
+            initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", userVerification: .platform, identityID: "identity-1")
         ))
         let (pin, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(
-            initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", pinSecret: protected, userVerification: .pin)
+            initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", pinSecret: protected, userVerification: .pin, identityID: "identity-1")
         ))
         let (none, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: nil))
 

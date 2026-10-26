@@ -6,10 +6,11 @@ public protocol OrySettingsFlow: Sendable {
 
     /// Starts a settings flow for the signed-in user.
     ///
+    /// - Parameter options: How the flow starts. Call ``createSettingsFlow()`` for the defaults.
     /// - Returns: A renderable settings ``OryFlow``.
     /// - Throws: ``OryClientError/notAuthenticated`` when no session is stored, or another
     ///   ``OryClientError`` on network or server failure.
-    func createSettingsFlow() async throws -> OryFlow
+    func createSettingsFlow(options: OrySettingsFlowOptions) async throws -> OryFlow
 
     /// Fetches an existing settings flow by id — for example the one recovery surfaced in
     /// ``OryRecoveryResult/settings`` to set a new password.
@@ -48,4 +49,14 @@ public protocol OrySettingsFlow: Sendable {
         values: OryFormValues,
         pressing action: OryInputField
     ) async throws -> OryFlowResult<OrySettingsResult>
+}
+
+extension OrySettingsFlow {
+
+    /// Starts a settings flow with default options.
+    ///
+    /// See ``createSettingsFlow(options:)``.
+    public func createSettingsFlow() async throws -> OryFlow {
+        try await createSettingsFlow(options: OrySettingsFlowOptions())
+    }
 }

@@ -59,10 +59,6 @@ public struct OryInputField: Sendable, Hashable {
         /// A URL field.
         public static let url = Kind(rawValue: "url")
 
-        /// An input type sent by a backend newer than this client, whose name was not
-        /// preserved. Render it as a plain text field so the user can still respond.
-        public static let unknown = Kind(rawValue: "unknown")
-
         /// Whether this field is a button the user presses to submit the flow.
         public var isSubmit: Bool { self == .submit || self == .button }
     }
@@ -104,6 +100,9 @@ public struct OryInputField: Sendable, Hashable {
 
         /// The account username or identifier.
         public static let username = Autocomplete(rawValue: "username")
+
+        /// The account username, which the system can also offer to fill with a passkey.
+        public static let usernameWebAuthn = Autocomplete(rawValue: "username webauthn")
     }
 
     /// A selectable option for choice inputs.
@@ -136,6 +135,13 @@ public struct OryInputField: Sendable, Hashable {
     /// Options for choice inputs; empty for plain inputs.
     public let options: [Option]
 
+    /// The authentication method the field belongs to, such as ``OryNodeGroup/password`` or
+    /// ``OryNodeGroup/code``.
+    ///
+    /// For an action it tells which method the button submits, so a screen can offer one
+    /// method at a time. See ``OryFlow/availableMethods``.
+    public let group: OryNodeGroup
+
     /// Creates an input field. Provided for tests and previews.
     public init(
         name: OryFieldName,
@@ -145,7 +151,8 @@ public struct OryInputField: Sendable, Hashable {
         isRequired: Bool = false,
         isDisabled: Bool = false,
         autocomplete: Autocomplete? = nil,
-        options: [Option] = []
+        options: [Option] = [],
+        group: OryNodeGroup = .default
     ) {
         self.name = name
         self.kind = kind
@@ -155,6 +162,7 @@ public struct OryInputField: Sendable, Hashable {
         self.isDisabled = isDisabled
         self.autocomplete = autocomplete
         self.options = options
+        self.group = group
     }
 
     /// Whether this field holds an email address or account identifier, whose value the

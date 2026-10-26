@@ -1,0 +1,14 @@
+{
+  "session": {
+    "id": "session-10",
+    "active": true,
+    "authenticator_assurance_level": "aal1",
+    "identity": {
+      "id": "identity-3",
+      "schema_id": "default",
+      "schema_url": "https://example.com/s",
+      "traits": { "email": "new@example.com" }
+    }
+  },
+  "session_token": "ory_st_reg"
+}

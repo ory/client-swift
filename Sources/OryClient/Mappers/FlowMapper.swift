@@ -10,7 +10,17 @@ import OrySDK
 enum FlowMapper {
 
     static func login(_ flow: OrySDKAPI.LoginFlow) -> OryFlow {
-        make(id: flow.id, expiresAt: flow.expiresAt, ui: flow.ui, kind: .login)
+        let requestedAAL = flow.requestedAal.flatMap { OryAuthenticatorAssuranceLevel(rawValue: $0.rawValue) }
+        let isRefresh = flow.refresh == true
+        return make(
+            id: flow.id,
+            expiresAt: flow.expiresAt,
+            ui: flow.ui,
+            kind: .login,
+            requestedAAL: requestedAAL,
+            isRefresh: isRefresh,
+            sendsSessionToken: isRefresh || (requestedAAL ?? .aal1) >= .aal2
+        )
     }
 
     static func registration(_ flow: OrySDKAPI.RegistrationFlow) -> OryFlow {
@@ -35,7 +45,10 @@ enum FlowMapper {
         id: String,
         expiresAt: Date?,
         ui: OrySDKAPI.UiContainer,
-        kind: OryFlowKind
+        kind: OryFlowKind,
+        requestedAAL: OryAuthenticatorAssuranceLevel? = nil,
+        isRefresh: Bool = false,
+        sendsSessionToken: Bool = false
     ) -> OryFlow {
         let parsed = parse(ui)
         return OryFlow(
@@ -45,10 +58,13 @@ enum FlowMapper {
             messages: (ui.messages ?? []).map(MessageMapper.flatMap),
             nodes: parsed.nodes,
             actions: parsed.actions,
+            requestedAAL: requestedAAL,
+            isRefresh: isRefresh,
             submission: OrySubmission(
                 action: URL(string: ui.action) ?? OrySubmission.placeholder.action,
                 method: ui.method,
-                values: parsed.values
+                values: parsed.values,
+                sendsSessionToken: sendsSessionToken
             )
         )
     }
@@ -63,16 +79,14 @@ enum FlowMapper {
 
     private static func parse(_ ui: OrySDKAPI.UiContainer) -> ParsedUI {
         var result = ParsedUI()
-        let group = { (node: OrySDKAPI.UiNode) in
-            node.group == .unknownDefaultOpenApi ? .unknown : OryNodeGroup(rawValue: node.group.rawValue)
-        }
+        let group = { (node: OrySDKAPI.UiNode) in OryNodeGroup(rawValue: node.group) }
 
         for node in ui.nodes {
             let messages = node.messages.map(MessageMapper.flatMap)
 
             switch node.attributes {
             case let .typeUiNodeInputAttributes(input):
-                let field = inputField(input, meta: node.meta)
+                let field = inputField(input, meta: node.meta, group: group(node))
 
                 if field.kind.isSubmit {
                     // Buttons are offered as actions; their value is submitted only
@@ -126,51 +140,20 @@ enum FlowMapper {
 
     private static func inputField(
         _ input: OrySDKAPI.UiNodeInputAttributes,
-        meta: OrySDKAPI.UiNodeMeta
+        meta: OrySDKAPI.UiNodeMeta,
+        group: OryNodeGroup
     ) -> OryInputField {
         OryInputField(
             name: OryFieldName(rawValue: input.name),
-            kind: kind(input.type),
+            kind: OryInputField.Kind(rawValue: input.type),
             label: input.label?.text ?? meta.label?.text,
             value: stringValue(input.value),
             isRequired: input._required ?? false,
             isDisabled: input.disabled,
-            autocomplete: input.autocomplete.flatMap(autocomplete),
-            options: (input.options ?? []).map { OryInputField.Option(value: stringValue($0.value) ?? "") }
+            autocomplete: input.autocomplete.map(OryInputField.Autocomplete.init(rawValue:)),
+            options: (input.options ?? []).map { OryInputField.Option(value: stringValue($0.value) ?? "") },
+            group: group
         )
-    }
-
-    private static func kind(_ type: OrySDKAPI.UiNodeInputAttributes.ModelType) -> OryInputField.Kind {
-        switch type {
-        case .text: return .text
-        case .password: return .password
-        case .number: return .number
-        case .checkbox: return .checkbox
-        case .hidden: return .hidden
-        case .email: return .email
-        case .tel: return .telephone
-        case .submit: return .submit
-        case .button: return .button
-        case .datetimeLocal: return .datetimeLocal
-        case .date: return .date
-        case .url: return .url
-        case .unknownDefaultOpenApi: return .unknown
-        }
-    }
-
-    private static func autocomplete(
-        _ value: OrySDKAPI.UiNodeInputAttributes.Autocomplete
-    ) -> OryInputField.Autocomplete? {
-        switch value {
-        case .email: return .email
-        case .tel: return .telephone
-        case .url: return .url
-        case .currentPassword: return .currentPassword
-        case .newPassword: return .newPassword
-        case .oneTimeCode: return .oneTimeCode
-        case .username, .usernameWebauthn: return .username
-        case .unknownDefaultOpenApi: return nil
-        }
     }
 
     /// Renders an input's value as a string for submission. Login fields are strings;

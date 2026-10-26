@@ -2,7 +2,7 @@ import Foundation
 
 extension OryClient: OrySettingsFlow {
 
-    public func createSettingsFlow() async throws -> OryFlow {
+    public func createSettingsFlow(options: OrySettingsFlowOptions) async throws -> OryFlow {
         try await settings.createSettingsFlow(sessionToken: requireSessionToken())
     }
 

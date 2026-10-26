@@ -15,15 +15,9 @@ extension OrySDKAPI {
 /** InputAttributes represents the attributes of an input node */
 public struct UiNodeInputAttributes: Sendable, Codable, Hashable {
 
-    public enum Autocomplete: String, Sendable, Codable, CaseIterable, CaseIterableDefaultsLast {
-        case email = "email"
-        case tel = "tel"
-        case url = "url"
-        case currentPassword = "current-password"
-        case newPassword = "new-password"
-        case oneTimeCode = "one-time-code"
-        case username = "username"
-        case usernameWebauthn = "username webauthn"
+    public enum Inputmode: String, Sendable, Codable, CaseIterable, CaseIterableDefaultsLast {
+        case numeric = "numeric"
+        case text = "text"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
     public enum NodeType: String, Sendable, Codable, CaseIterable, CaseIterableDefaultsLast {
@@ -48,25 +42,12 @@ public struct UiNodeInputAttributes: Sendable, Codable, Hashable {
         case orypasskeysettingsregistration = "oryPasskeySettingsRegistration"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
-    public enum ModelType: String, Sendable, Codable, CaseIterable, CaseIterableDefaultsLast {
-        case text = "text"
-        case password = "password"
-        case number = "number"
-        case checkbox = "checkbox"
-        case hidden = "hidden"
-        case email = "email"
-        case tel = "tel"
-        case submit = "submit"
-        case button = "button"
-        case datetimeLocal = "datetime-local"
-        case date = "date"
-        case url = "url"
-        case unknownDefaultOpenApi = "unknown_default_open_api"
-    }
     /** The autocomplete attribute for the input. email InputAttributeAutocompleteEmail tel InputAttributeAutocompleteTel url InputAttributeAutocompleteUrl current-password InputAttributeAutocompleteCurrentPassword new-password InputAttributeAutocompleteNewPassword one-time-code InputAttributeAutocompleteOneTimeCode username InputAttributeAutocompleteUsername username webauthn InputAttributeAutocompleteUsernameWebauthn */
-    public var autocomplete: Autocomplete?
+    public var autocomplete: String?
     /** Sets the input's disabled field to true or false. */
     public var disabled: Bool
+    /** The inputmode attribute for the input, which hints at the virtual keyboard to show. numeric InputAttributeInputModeNumeric text InputAttributeInputModeText */
+    public var inputmode: Inputmode?
     public var label: UiText?
     /** MaxLength may contain the input's maximum length. */
     public var maxlength: Int64?
@@ -89,13 +70,14 @@ public struct UiNodeInputAttributes: Sendable, Codable, Hashable {
     /** Mark this input field as required. */
     public var _required: Bool?
     /** The input's element type. text InputAttributeTypeText password InputAttributeTypePassword number InputAttributeTypeNumber checkbox InputAttributeTypeCheckbox hidden InputAttributeTypeHidden email InputAttributeTypeEmail tel InputAttributeTypeTel submit InputAttributeTypeSubmit button InputAttributeTypeButton datetime-local InputAttributeTypeDateTimeLocal date InputAttributeTypeDate url InputAttributeTypeURI */
-    public var type: ModelType
+    public var type: String
     /** The input's value. */
     public var value: JSONValue?
 
-    public init(autocomplete: Autocomplete? = nil, disabled: Bool, label: UiText? = nil, maxlength: Int64? = nil, name: String, nodeType: NodeType, onclick: String? = nil, onclickTrigger: OnclickTrigger? = nil, onload: String? = nil, onloadTrigger: OnloadTrigger? = nil, options: [UiNodeInputAttributesOption]? = nil, pattern: String? = nil, _required: Bool? = nil, type: ModelType, value: JSONValue? = nil) {
+    public init(autocomplete: String? = nil, disabled: Bool, inputmode: Inputmode? = nil, label: UiText? = nil, maxlength: Int64? = nil, name: String, nodeType: NodeType, onclick: String? = nil, onclickTrigger: OnclickTrigger? = nil, onload: String? = nil, onloadTrigger: OnloadTrigger? = nil, options: [UiNodeInputAttributesOption]? = nil, pattern: String? = nil, _required: Bool? = nil, type: String, value: JSONValue? = nil) {
         self.autocomplete = autocomplete
         self.disabled = disabled
+        self.inputmode = inputmode
         self.label = label
         self.maxlength = maxlength
         self.name = name
@@ -114,6 +96,7 @@ public struct UiNodeInputAttributes: Sendable, Codable, Hashable {
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case autocomplete
         case disabled
+        case inputmode
         case label
         case maxlength
         case name
@@ -135,6 +118,7 @@ public struct UiNodeInputAttributes: Sendable, Codable, Hashable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(autocomplete, forKey: .autocomplete)
         try container.encode(disabled, forKey: .disabled)
+        try container.encodeIfPresent(inputmode, forKey: .inputmode)
         try container.encodeIfPresent(label, forKey: .label)
         try container.encodeIfPresent(maxlength, forKey: .maxlength)
         try container.encode(name, forKey: .name)
@@ -155,11 +139,10 @@ public struct UiNodeInputAttributes: Sendable, Codable, Hashable {
 
 extension OrySDKAPI.UiNodeInputAttributes: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
-        if autocomplete == .unknownDefaultOpenApi { return true }
+        if inputmode == .unknownDefaultOpenApi { return true }
         if nodeType == .unknownDefaultOpenApi { return true }
         if onclickTrigger == .unknownDefaultOpenApi { return true }
         if onloadTrigger == .unknownDefaultOpenApi { return true }
-        if type == .unknownDefaultOpenApi { return true }
         return false
     }
 }

@@ -4,6 +4,16 @@ import OryClient
 
 nonisolated enum DebugHeader {
     static let correlationID = "X-Ory-Debug-Id"
+
+    private static let credentialHeaders: Set = ["authorization", "cookie", "set-cookie", "x-session-token"]
+
+    /// Masks headers that carry credentials, which another interceptor or the server may add,
+    /// before they are stored in the log.
+    static func redacted(_ headers: [String: String]) -> [String: String] {
+        headers.reduce(into: [:]) { result, header in
+            result[header.key] = credentialHeaders.contains(header.key.lowercased()) ? "[REDACTED]" : header.value
+        }
+    }
 }
 
 /// Records every outgoing request into the ``NetworkHistoryStore`` and stamps it with a
@@ -11,7 +21,8 @@ nonisolated enum DebugHeader {
 ///
 /// This is the request half of the in-app network logger — it shows integrators that
 /// ``OryRequestInterceptor`` is enough to observe (and here, tag) every request. It runs
-/// before the client applies the session token, so the token never enters the log.
+/// before the client applies the session token, and the client redacts credentials such as
+/// passwords and codes in the body it hands over, so neither enters the log.
 struct LoggingRequestInterceptor: OryRequestInterceptor {
 
     let store: NetworkHistoryStore
@@ -24,7 +35,7 @@ struct LoggingRequestInterceptor: OryRequestInterceptor {
             id: id,
             method: request.method,
             url: request.url,
-            headers: request.headers,
+            headers: DebugHeader.redacted(request.headers),
             body: request.body
         )
         return request
@@ -32,21 +43,21 @@ struct LoggingRequestInterceptor: OryRequestInterceptor {
 }
 
 /// Attaches every response to its request in the ``NetworkHistoryStore``, matched by the
-/// correlation id the request interceptor stamped.
+/// correlation id the request interceptor stamped. The body arrives with the session token
+/// already redacted.
 struct LoggingResponseInterceptor: OryResponseInterceptor {
 
     let store: NetworkHistoryStore
 
-    func intercept(_ response: OryReceivedResponse) async throws -> OryReceivedResponse {
+    func intercept(_ response: OryReceivedResponse) async throws {
         if let id = response.request.headers[DebugHeader.correlationID].flatMap(UUID.init(uuidString:)) {
             await store.recordResponse(
                 id: id,
                 statusCode: response.statusCode,
-                headers: response.headers,
+                headers: DebugHeader.redacted(response.headers),
                 body: response.body
             )
         }
-        return response
     }
 }
 

@@ -16,7 +16,7 @@ enum HTTPHeader {
     static let sessionToken = "X-Session-Token"
 
     /// Names the client package, its version, and the OS, with the value from ``ClientIdentification``.
-    static let oryClient = "X-Ory-Client"
+    static let oryClient = "Ory-Client"
 }
 
 /// Media types used by the client.

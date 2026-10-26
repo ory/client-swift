@@ -135,7 +135,7 @@ struct RecoverySettingsTests {
             Issue.record("Expected the form to remain available after rejection")
             return
         }
-        #expect((settings.submitError != nil) == reauthenticationRequired)
+        #expect((settings.reauthentication != nil) == reauthenticationRequired)
     }
 
     @Test("Retrying a failed settings fetch preserves the recovery handle")

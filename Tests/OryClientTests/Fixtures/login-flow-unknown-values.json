@@ -8,6 +8,13 @@
   "ui": {
     "action": "https://example.com/login",
     "method": "POST",
+    "messages": [
+      {
+        "id": 1010999,
+        "text": "A future notice.",
+        "type": "future_message_type"
+      }
+    ],
     "nodes": [
       {
         "type": "input",
@@ -17,7 +24,8 @@
         "attributes": {
           "node_type": "input",
           "name": "future_field",
-          "type": "text",
+          "type": "future_input_type",
+          "autocomplete": "future-hint",
           "disabled": false
         }
       }

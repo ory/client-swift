@@ -70,6 +70,33 @@ struct FrontendGatewayTests {
         #expect(replacementFlowID == "a7f0b3d4-1f6b-4e2c-9d5a-8c1e2b3f4a5d")
     }
 
+    @Test("422 with redirect_browser_to carries the URL the browser must open")
+    func browserLocationChange() {
+        let body = Data(#"""
+        {"error":{"id":"browser_location_change_required","code":422,"message":"..."},"redirect_browser_to":"https://accounts.example.com/authorize?state=abc"}
+        """#.utf8)
+
+        let mapped = error(status: 422, body: body)
+
+        guard case let .browserLocationChangeRequired(redirectURL) = mapped else {
+            Issue.record("expected browserLocationChangeRequired, got \(mapped)")
+            return
+        }
+        #expect(redirectURL.absoluteString == "https://accounts.example.com/authorize?state=abc")
+    }
+
+    @Test("422 without redirect_browser_to stays a server error with its id")
+    func unprocessableWithoutRedirect() {
+        let mapped = error(status: 422, body: genericBody(id: "browser_location_change_required"))
+
+        guard case let .server(status, id, _) = mapped else {
+            Issue.record("expected server, got \(mapped)")
+            return
+        }
+        #expect(status == 422)
+        #expect(id == .browserLocationChangeRequired)
+    }
+
     @Test("429 carries the server's Retry-After so the app can back off")
     func rateLimited() {
         let mapped = error(status: 429, headers: ["Retry-After": "30"])

@@ -106,7 +106,9 @@ struct DeviceAuthnView: View {
     private var statusSection: some View {
         Section("Status") {
             LabeledContent("Assurance level", value: viewModel.assuranceLevel.rawValue)
-            LabeledContent("This device", value: viewModel.isEnrolled ? "Enrolled" : "Not enrolled")
+            LabeledContent("This device", value: viewModel.isEnrolled
+                ? "Enrolled"
+                : viewModel.isEnrolledForAnotherAccount ? "Set up for another account" : "Not enrolled")
         }
     }
 
@@ -134,6 +136,11 @@ struct DeviceAuthnView: View {
                     Task { await viewModel.remove() }
                 }
                 Button("Forget on this app only") {
+                    Task { await viewModel.forget() }
+                }
+            } else if viewModel.isEnrolledForAnotherAccount {
+                // Taking the device over ends device sign-in for the other account on this phone.
+                Button("Use this device for my account") {
                     Task { await viewModel.forget() }
                 }
             } else {

@@ -25,9 +25,11 @@ struct LoginView: View {
                     Task { await viewModel.submit(pressing: action) }
                 }
                 .safeAreaInset(edge: .bottom) {
-                    Button("Forgot password?") { viewModel.forgotPassword() }
-                        .padding()
-                        .disabled(viewModel.isSubmitting)
+                    if !viewModel.confirmsSignedInUser {
+                        Button("Forgot password?") { viewModel.forgotPassword() }
+                            .padding()
+                            .disabled(viewModel.isSubmitting)
+                    }
                 }
 
             case let .failed(message):
@@ -40,7 +42,7 @@ struct LoginView: View {
                 }
             }
         }
-        .navigationTitle("Sign in")
+        .navigationTitle(viewModel.confirmsSignedInUser ? "Verify it's you" : "Sign in")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") { viewModel.dismiss() }

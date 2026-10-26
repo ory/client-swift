@@ -41,11 +41,12 @@ public struct OryClientConfiguration: Sendable {
     /// > `InsecureEphemeralPINSealingKeyProvider` from `OryClientTestDoubles`.
     public let pinSealingKeyProvider: OryPINSealingKeyProvider
 
-    /// Hooks that adapt every outgoing request (tracing, correlation IDs). Applied in
-    /// order; for the common header-only case use ``OryHeaderInterceptor``.
+    /// Hooks that add headers to every outgoing request (tracing, correlation IDs). Applied in
+    /// order; for the common case use ``OryHeaderInterceptor``.
     public let requestInterceptors: [any OryRequestInterceptor]
 
-    /// Hooks that inspect or adapt every response before it is decoded. Applied in order.
+    /// Hooks that inspect every response before it is decoded, for example for logging.
+    /// Applied in order.
     public let responseInterceptors: [any OryResponseInterceptor]
 
     /// An optional hook to observe network activity (logging, metrics, Sentry).
@@ -101,10 +102,10 @@ public struct OryClientConfiguration: Sendable {
     ///   - pinSealingKeyProvider: Supplies the hardware-backed key wrapping PIN material
     ///     at rest. Defaults to ``OrySecureEnclavePINSealingKeyProvider``; anything else
     ///     gives up hardware protection of the PIN secret, so keep it to test runners.
-    ///   - requestInterceptors: ``OryRequestInterceptor``s that adapt outgoing requests,
+    ///   - requestInterceptors: ``OryRequestInterceptor``s that add headers to outgoing
+    ///     requests, applied in order. Defaults to none.
+    ///   - responseInterceptors: ``OryResponseInterceptor``s that inspect responses,
     ///     applied in order. Defaults to none.
-    ///   - responseInterceptors: ``OryResponseInterceptor``s that inspect or adapt
-    ///     responses, applied in order. Defaults to none.
     ///   - networkObserver: An optional ``OryNetworkObserver`` to observe requests and
     ///     responses, for example ``OryConsoleNetworkObserver`` in debug builds.
     ///   - deviceKeyAuthenticator: How device authentication signs and attests. Defaults

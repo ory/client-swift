@@ -45,6 +45,9 @@ public extension OryFieldName {
     /// An authenticator-app one-time password.
     static let totpCode = OryFieldName(rawValue: "totp_code")
 
+    /// The settings button that unlinks the authenticator app.
+    static let totpUnlink = OryFieldName(rawValue: "totp_unlink")
+
     /// A backup recovery code.
     static let lookupSecret = OryFieldName(rawValue: "lookup_secret")
 
@@ -57,4 +60,15 @@ public extension OryFieldName {
 
     /// The anti-CSRF token. Carried for you; you never set it.
     static let csrfToken = OryFieldName(rawValue: "csrf_token")
+
+    /// The step navigation of a two-step registration. Its ``OryFlow/previousStepAction`` goes
+    /// back to the profile step.
+    static let screen = OryFieldName(rawValue: "screen")
+
+    /// The button that sends a new one-time code in a login or registration flow.
+    static let resend = OryFieldName(rawValue: "resend")
+
+    /// The address field of a recovery or verification flow. Once a code was sent, a button
+    /// with this name sends a new one.
+    static let email = OryFieldName(rawValue: "email")
 }

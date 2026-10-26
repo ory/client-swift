@@ -39,8 +39,7 @@ public struct OryUIMessage: Sendable, Hashable {
         /// Confirmation that an action succeeded.
         public static let success = Kind(rawValue: "success")
 
-        /// A message type sent by a backend newer than this client, whose name was not
-        /// preserved. Show the text as neutral information.
+        /// A message Ory sent without a type. Show the text as neutral information.
         public static let unknown = Kind(rawValue: "unknown")
     }
 
@@ -104,8 +103,10 @@ public enum OryClientError: Error, Sendable {
     /// setting a new PIN or removing a device (`session_refresh_required`).
     ///
     /// The user is still signed in — do **not** send them to a full sign-in. Ask them to prove
-    /// their credential again (a password re-entry, or ``OryDeviceStepUp/authenticateWithDevice(pin:)``)
-    /// and retry. Ory Network's privileged window is 15 minutes by default.
+    /// their credential again and retry: start a re-authentication flow with
+    /// `createLoginFlow(options: OryLoginFlowOptions(refresh: true))`, or step up with
+    /// ``OryDeviceStepUp/authenticateWithDevice(pin:)`` when the device is enrolled. Ory
+    /// Network's privileged window is 15 minutes by default.
     case reauthenticationRequired
 
     /// The project requires a second factor that this identity has not enrolled yet
@@ -118,12 +119,24 @@ public enum OryClientError: Error, Sendable {
     /// The flow expired before it was submitted (HTTP 410).
     ///
     /// Flows are short-lived, so this is routine whenever a user is interrupted mid-sign-in.
-    /// Start a fresh flow and re-render it; the user's input is not recoverable.
+    /// Continue with the replacement flow, or start a fresh one; the user's input is not
+    /// recoverable.
     ///
     /// - Parameter replacementFlowID: The flow the server already created to replace the
-    ///   expired one, when it named one. It carries the localized "your session expired"
-    ///   message, so fetching it produces a friendlier screen than starting from scratch.
+    ///   expired one, when it named one. It carries the "this took too long" message, so fetch
+    ///   it with the flow's `get…Flow(id:)` method — for example
+    ///   ``OryLoginFlow/getLoginFlow(id:)`` — instead of starting from scratch.
     case flowExpired(replacementFlowID: String?)
+
+    /// The flow cannot continue in the app: the server asks to continue in a browser at
+    /// `redirectURL` (HTTP 422, `browser_location_change_required`).
+    ///
+    /// It happens when the user picks a method that signs in at a third party, such as a
+    /// social sign-in provider (``OryNodeGroup/oidc``) or enterprise SSO (``OryNodeGroup/saml``).
+    /// Remove those methods from the screen when your app does not handle this error.
+    ///
+    /// - Parameter redirectURL: The page the server wants the browser to open.
+    case browserLocationChangeRequired(redirectURL: URL)
 
     /// The request was rate limited (HTTP 429). Back off before retrying.
     ///
@@ -135,18 +148,23 @@ public enum OryClientError: Error, Sendable {
     /// the session does not yet satisfy.
     ///
     /// The session token is valid and stored — do **not** send the user back to full
-    /// sign-in. Instead prompt the second factor, then continue with
-    /// ``OryClientProtocol/authenticateWithDevice(pin:)``, passing the PIN when
-    /// ``OryClientProtocol/deviceEnrollment()`` reports a PIN key.
+    /// sign-in. Instead prompt the second factor: start a second-factor login flow with
+    /// `createLoginFlow(options: OryLoginFlowOptions(aal: .aal2))` and submit it, or, when
+    /// this device is enrolled, call ``OryClientProtocol/authenticateWithDevice(pin:)``,
+    /// passing the PIN when ``OryClientProtocol/deviceEnrollment()`` reports a PIN key.
     ///
     /// ```swift
     /// do {
     ///     let session = try await client.currentSession()
     /// } catch OryClientError.secondFactorRequired {
-    ///     if try await client.deviceEnrollment() == .enrolled(.pin) {
+    ///     switch try await client.deviceEnrollment() {
+    ///     case .enrolled(.pin):
     ///         _ = try await client.authenticateWithDevice(pin: enteredPIN)  // AAL2
-    ///     } else {
+    ///     case .enrolled:
     ///         _ = try await client.authenticateWithDevice()                 // AAL2
+    ///     default:
+    ///         let flow = try await client.createLoginFlow(options: OryLoginFlowOptions(aal: .aal2))
+    ///         // Render the flow and submit it with submitLoginFlow(_:values:pressing:).
     ///     }
     /// }
     /// ```
@@ -205,6 +223,15 @@ public enum OryClientError: Error, Sendable {
     /// that case enroll again. On the PIN paths it additionally means the stored PIN
     /// material is unusable (its sealing key or blob is gone); enroll the PIN again.
     case deviceAuthenticationNotEnrolled
+
+    /// This device holds a key for a different account than the one signed in.
+    ///
+    /// A device holds a key for one account at a time. Enrolling would replace the other
+    /// account's key and silently end its device sign-in, so ``OryClient`` refuses. Ask the user
+    /// whether to move device sign-in to this account; if so, call
+    /// ``OryClientProtocol/forgetDevice()`` and enroll again. Check ahead of time with
+    /// ``OryClientProtocol/deviceEnrollment(for:)``.
+    case deviceAuthenticationEnrolledForAnotherAccount
 
     /// A Secure Enclave or App Attest operation failed at runtime, for example while
     /// generating or attesting a key. `underlying` carries the platform error.
@@ -287,6 +314,8 @@ extension OryClientError: LocalizedError {
             return "Please set up a second factor to continue."
         case .flowExpired:
             return "This took too long. Please start again."
+        case .browserLocationChangeRequired:
+            return "This sign-in method needs to continue in a browser."
         case .rateLimited:
             return "Too many attempts. Please wait a moment and try again."
         case let .network(underlying):
@@ -308,6 +337,8 @@ extension OryClientError: LocalizedError {
             return "Device authentication is not enabled for this Ory project."
         case .deviceAuthenticationNotEnrolled:
             return "No device is enrolled for device authentication on this device."
+        case .deviceAuthenticationEnrolledForAnotherAccount:
+            return "This device is set up for another account."
         case let .deviceAuthenticationFailed(underlying):
             return "Device authentication failed: \(underlying.localizedDescription)"
         case .deviceAuthenticationBiometricsUnavailable:

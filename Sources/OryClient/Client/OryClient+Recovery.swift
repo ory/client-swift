@@ -2,8 +2,12 @@ import Foundation
 
 extension OryClient: OryRecoveryFlow {
 
-    public func createRecoveryFlow() async throws -> OryFlow {
+    public func createRecoveryFlow(options: OryRecoveryFlowOptions) async throws -> OryFlow {
         try await recovery.createRecoveryFlow()
+    }
+
+    public func getRecoveryFlow(id: String) async throws -> OryFlow {
+        try await recovery.getRecoveryFlow(id: id)
     }
 
     public func submitRecoveryFlow(

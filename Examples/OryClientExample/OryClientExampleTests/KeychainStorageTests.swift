@@ -61,14 +61,14 @@ struct KeychainStorageTests {
     @Test("stores, reads back, and clears a device key")
     func deviceKeyRoundTrip() async throws {
         let store = OryKeychainDeviceKeyStore(service: uniqueService())
-        let key = OryStoredDeviceKey(clientKeyID: "srv-1", localKeyID: "apple-1", userVerification: .pin)
+        let key = OryStoredDeviceKey(clientKeyID: "srv-1", localKeyID: "apple-1", userVerification: .pin, identityID: "identity-1")
 
         #expect(try await store.enrolledKey() == nil)
 
         try await store.store(key)
         #expect(try await store.enrolledKey() == key)
 
-        let replacement = OryStoredDeviceKey(clientKeyID: "srv-2", localKeyID: "apple-2", userVerification: .platform)
+        let replacement = OryStoredDeviceKey(clientKeyID: "srv-2", localKeyID: "apple-2", userVerification: .platform, identityID: "identity-1")
         try await store.store(replacement)
         #expect(try await store.enrolledKey() == replacement)
 
@@ -80,7 +80,7 @@ struct KeychainStorageTests {
     func deviceKeyAccessibility() async throws {
         let service = uniqueService()
         let store = OryKeychainDeviceKeyStore(service: service)
-        try await store.store(OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .pin))
+        try await store.store(OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .pin, identityID: "identity-1"))
         defer { Task { try? await store.clear() } }
 
         let accessible = try #require(accessibility(service: service, account: "device_key"))
@@ -113,7 +113,7 @@ struct KeychainStorageTests {
         defer { Task { try? await session.clear(); try? await device.clear() } }
 
         try await session.store(sessionToken: "ory_st_shared")
-        try await device.store(OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .none))
+        try await device.store(OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .none, identityID: "identity-1"))
 
         #expect(try await session.sessionToken() == "ory_st_shared")
         #expect(try await device.enrolledKey()?.clientKeyID == "srv")

@@ -34,6 +34,7 @@ public struct NormalizedProjectRevisionSAMLProvider: Sendable, Codable, Hashable
         case automatic = "automatic"
         case unknownDefaultOpenApi = "unknown_default_open_api"
     }
+    public var acsUrl: String?
     /** The digest algorithms accepted when validating signed SAML messages; empty means engine defaults (native engine only). */
     public var allowedDigestAlgorithms: [String]?
     /** The NameID formats accepted from the IdP; empty means any (native engine only). */
@@ -82,7 +83,8 @@ public struct NormalizedProjectRevisionSAMLProvider: Sendable, Codable, Hashable
     /** Valid to dates of all signing certs associated with the SAML connection */
     public var validTo: [String]?
 
-    public init(allowedDigestAlgorithms: [String]? = nil, allowedNameIdFormats: [String]? = nil, allowedSignatureAlgorithms: [String]? = nil, audienceOverrideBaseUrl: String? = nil, binding: Binding? = nil, clockSkewSeconds: Int64? = nil, createdAt: Date? = nil, engine: Engine? = nil, forceAuthn: Bool? = nil, id: String? = nil, idpInitiatedLoginEnabled: Bool? = nil, idpMetadataUrl: String? = nil, label: String? = nil, mapperUrl: String? = nil, organizationId: String? = nil, projectRevisionId: String? = nil, providerId: String? = nil, proxyAcsUrl: String? = nil, proxySamlAudienceOverride: String? = nil, rawIdpMetadataXml: String? = nil, requireEncryptedAssertion: Bool? = nil, signAuthnRequests: Bool? = nil, spEntityIdOverride: String? = nil, state: State? = nil, updateIdentityOnLogin: UpdateIdentityOnLogin? = nil, updatedAt: Date? = nil, validTo: [String]? = nil) {
+    public init(acsUrl: String? = nil, allowedDigestAlgorithms: [String]? = nil, allowedNameIdFormats: [String]? = nil, allowedSignatureAlgorithms: [String]? = nil, audienceOverrideBaseUrl: String? = nil, binding: Binding? = nil, clockSkewSeconds: Int64? = nil, createdAt: Date? = nil, engine: Engine? = nil, forceAuthn: Bool? = nil, id: String? = nil, idpInitiatedLoginEnabled: Bool? = nil, idpMetadataUrl: String? = nil, label: String? = nil, mapperUrl: String? = nil, organizationId: String? = nil, projectRevisionId: String? = nil, providerId: String? = nil, proxyAcsUrl: String? = nil, proxySamlAudienceOverride: String? = nil, rawIdpMetadataXml: String? = nil, requireEncryptedAssertion: Bool? = nil, signAuthnRequests: Bool? = nil, spEntityIdOverride: String? = nil, state: State? = nil, updateIdentityOnLogin: UpdateIdentityOnLogin? = nil, updatedAt: Date? = nil, validTo: [String]? = nil) {
+        self.acsUrl = acsUrl
         self.allowedDigestAlgorithms = allowedDigestAlgorithms
         self.allowedNameIdFormats = allowedNameIdFormats
         self.allowedSignatureAlgorithms = allowedSignatureAlgorithms
@@ -113,6 +115,7 @@ public struct NormalizedProjectRevisionSAMLProvider: Sendable, Codable, Hashable
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
+        case acsUrl = "acs_url"
         case allowedDigestAlgorithms = "allowed_digest_algorithms"
         case allowedNameIdFormats = "allowed_name_id_formats"
         case allowedSignatureAlgorithms = "allowed_signature_algorithms"
@@ -146,6 +149,7 @@ public struct NormalizedProjectRevisionSAMLProvider: Sendable, Codable, Hashable
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(acsUrl, forKey: .acsUrl)
         try container.encodeIfPresent(allowedDigestAlgorithms, forKey: .allowedDigestAlgorithms)
         try container.encodeIfPresent(allowedNameIdFormats, forKey: .allowedNameIdFormats)
         try container.encodeIfPresent(allowedSignatureAlgorithms, forKey: .allowedSignatureAlgorithms)

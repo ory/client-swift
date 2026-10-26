@@ -50,6 +50,8 @@ public struct OnboardingPortalOrganization: Sendable, Codable, Hashable {
     public var revisionId: String
     /** SAMLMapper specifies the JSONNet code snippet which uses the SAML Provider's profile information to hydrate the identity's data. */
     public var samlMapperUrl: String?
+    /** Whether a new SAML provider gets its own ACS URL, the shared ACS URL followed by its provider ID. */
+    public var samlPerProviderAcsUrlEnabled: Bool?
     public var samlSsoEnabled: Bool?
     public var scimClients: [NormalizedProjectRevisionScimClient]
     public var scimEnabled: Bool
@@ -57,7 +59,7 @@ public struct OnboardingPortalOrganization: Sendable, Codable, Hashable {
     public var scimMapperUrl: String?
     public var ssoEnabled: Bool
 
-    public init(appleMapperUrl: String? = nil, auth0MapperUrl: String? = nil, baseUrl: String, facebookMapperUrl: String? = nil, genericOidcMapperUrl: String? = nil, githubMapperUrl: String? = nil, gitlabMapperUrl: String? = nil, googleMapperUrl: String? = nil, kratosSelfserviceMethodsOidcConfigProviders: [NormalizedProjectRevisionThirdPartyProvider], kratosSelfserviceMethodsSamlConfigProviders: [NormalizedProjectRevisionSAMLProvider], microsoftMapperUrl: String? = nil, netidMapperUrl: String? = nil, oidcSsoEnabled: Bool? = nil, organizationId: String, organizationLabel: String? = nil, proxyAcsUrl: String? = nil, proxyOidcRedirectUrl: String? = nil, proxySamlAudienceOverride: String? = nil, proxyScimServerUrl: String? = nil, revisionId: String, samlMapperUrl: String? = nil, samlSsoEnabled: Bool? = nil, scimClients: [NormalizedProjectRevisionScimClient], scimEnabled: Bool, scimMapperUrl: String? = nil, ssoEnabled: Bool) {
+    public init(appleMapperUrl: String? = nil, auth0MapperUrl: String? = nil, baseUrl: String, facebookMapperUrl: String? = nil, genericOidcMapperUrl: String? = nil, githubMapperUrl: String? = nil, gitlabMapperUrl: String? = nil, googleMapperUrl: String? = nil, kratosSelfserviceMethodsOidcConfigProviders: [NormalizedProjectRevisionThirdPartyProvider], kratosSelfserviceMethodsSamlConfigProviders: [NormalizedProjectRevisionSAMLProvider], microsoftMapperUrl: String? = nil, netidMapperUrl: String? = nil, oidcSsoEnabled: Bool? = nil, organizationId: String, organizationLabel: String? = nil, proxyAcsUrl: String? = nil, proxyOidcRedirectUrl: String? = nil, proxySamlAudienceOverride: String? = nil, proxyScimServerUrl: String? = nil, revisionId: String, samlMapperUrl: String? = nil, samlPerProviderAcsUrlEnabled: Bool? = nil, samlSsoEnabled: Bool? = nil, scimClients: [NormalizedProjectRevisionScimClient], scimEnabled: Bool, scimMapperUrl: String? = nil, ssoEnabled: Bool) {
         self.appleMapperUrl = appleMapperUrl
         self.auth0MapperUrl = auth0MapperUrl
         self.baseUrl = baseUrl
@@ -79,6 +81,7 @@ public struct OnboardingPortalOrganization: Sendable, Codable, Hashable {
         self.proxyScimServerUrl = proxyScimServerUrl
         self.revisionId = revisionId
         self.samlMapperUrl = samlMapperUrl
+        self.samlPerProviderAcsUrlEnabled = samlPerProviderAcsUrlEnabled
         self.samlSsoEnabled = samlSsoEnabled
         self.scimClients = scimClients
         self.scimEnabled = scimEnabled
@@ -108,6 +111,7 @@ public struct OnboardingPortalOrganization: Sendable, Codable, Hashable {
         case proxyScimServerUrl = "proxy_scim_server_url"
         case revisionId = "revision_id"
         case samlMapperUrl = "saml_mapper_url"
+        case samlPerProviderAcsUrlEnabled = "saml_per_provider_acs_url_enabled"
         case samlSsoEnabled = "saml_sso_enabled"
         case scimClients = "scim_clients"
         case scimEnabled = "scim_enabled"
@@ -140,6 +144,7 @@ public struct OnboardingPortalOrganization: Sendable, Codable, Hashable {
         try container.encodeIfPresent(proxyScimServerUrl, forKey: .proxyScimServerUrl)
         try container.encode(revisionId, forKey: .revisionId)
         try container.encodeIfPresent(samlMapperUrl, forKey: .samlMapperUrl)
+        try container.encodeIfPresent(samlPerProviderAcsUrlEnabled, forKey: .samlPerProviderAcsUrlEnabled)
         try container.encodeIfPresent(samlSsoEnabled, forKey: .samlSsoEnabled)
         try container.encode(scimClients, forKey: .scimClients)
         try container.encode(scimEnabled, forKey: .scimEnabled)

@@ -2,7 +2,7 @@ import Foundation
 
 extension OryClient: OryVerificationFlow {
 
-    public func createVerificationFlow() async throws -> OryFlow {
+    public func createVerificationFlow(options: OryVerificationFlowOptions) async throws -> OryFlow {
         try await verification.createVerificationFlow()
     }
 

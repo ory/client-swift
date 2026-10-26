@@ -4,7 +4,9 @@ import OryClient
 
 /// Drives the step-up screen. It reads how this device is enrolled with `deviceEnrollment()`,
 /// then steps up with `authenticateWithDevice(pin:)` for a PIN key or `authenticateWithDevice()`
-/// otherwise — each returning the upgraded AAL2 session.
+/// otherwise — each returning the upgraded AAL2 session. Without a device key it falls back to
+/// a second-factor login flow (`OryLoginFlowOptions(aal: .aal2)`), which renders whatever second
+/// factors the account has, such as an authenticator app code.
 @MainActor
 @Observable
 final class SecondFactorViewModel {
@@ -13,6 +15,9 @@ final class SecondFactorViewModel {
     let biometryLabel: String
     private(set) var isPINEnrolled = false
     private(set) var isBiometricEnrolled = false
+    private(set) var isLoaded = false
+    /// The second-factor login flow, set when this device has no enrolled key.
+    private(set) var secondFactorLogin: LoginViewModel?
     private(set) var isVerifying = false
     private(set) var errorMessage: String?
 
@@ -32,6 +37,16 @@ final class SecondFactorViewModel {
         let enrollment = (try? await client.deviceEnrollment()) ?? .notEnrolled
         isPINEnrolled = enrollment == .enrolled(.pin)
         isBiometricEnrolled = enrollment == .enrolled(.platform)
+        if enrollment == .notEnrolled {
+            secondFactorLogin = LoginViewModel(
+                client: client,
+                options: OryLoginFlowOptions(aal: .aal2),
+                onSignedIn: onVerified,
+                onForgotPassword: {},
+                onDismiss: onCancel
+            )
+        }
+        isLoaded = true
     }
 
     /// Step up with this device's key. `OryClient` prompts biometrics for a biometric key and

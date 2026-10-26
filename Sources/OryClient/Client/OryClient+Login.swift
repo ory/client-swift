@@ -2,8 +2,13 @@ import Foundation
 
 extension OryClient: OryLoginFlow {
 
-    public func createLoginFlow() async throws -> OryFlow {
-        try await login.createLoginFlow()
+    public func createLoginFlow(options: OryLoginFlowOptions) async throws -> OryFlow {
+        let sessionToken = options.belongsToSession ? try await requireSessionToken() : nil
+        return try await login.createLoginFlow(options: options, sessionToken: sessionToken)
+    }
+
+    public func getLoginFlow(id: String) async throws -> OryFlow {
+        try await login.getLoginFlow(id: id)
     }
 
     public func submitLoginFlow(
@@ -15,7 +20,7 @@ extension OryClient: OryLoginFlow {
         let outcome = try await login.submitLogin(
             url: body.url,
             fields: body.fields,
-            sessionToken: nil
+            sessionToken: flow.submission.sendsSessionToken ? try await requireSessionToken() : nil
         )
 
         switch outcome {

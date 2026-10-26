@@ -9,13 +9,16 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
     private let currentSessionResult: Result<OrySession, OryClientError>
     private let revokeSessionResult: Result<Void, OryClientError>
     private let createLoginFlowResult: Result<OryFlow, OryClientError>
+    private let getLoginFlowResult: Result<OryFlow, OryClientError>
     private let submitLoginResult: Result<LoginSubmissionOutcome, OryClientError>
     private let createRegistrationFlowResult: Result<OryFlow, OryClientError>
+    private let getRegistrationFlowResult: Result<OryFlow, OryClientError>
     private let submitRegistrationResult: Result<RegistrationOutcome, OryClientError>
     private let createVerificationFlowResult: Result<OryFlow, OryClientError>
     private let getVerificationFlowResult: Result<OryFlow, OryClientError>
     private let submitVerificationResult: Result<VerificationOutcome, OryClientError>
     private let createRecoveryFlowResult: Result<OryFlow, OryClientError>
+    private let getRecoveryFlowResult: Result<OryFlow, OryClientError>
     private let submitRecoveryResult: Result<RecoveryOutcome, OryClientError>
     private let createSettingsFlowResult: Result<OryFlow, OryClientError>
     private let getSettingsFlowResult: Result<OryFlow, OryClientError>
@@ -40,6 +43,8 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
 
     private(set) var receivedSessionToken: String?
     private(set) var submitCallCount = 0
+    private(set) var receivedLoginFlowOptions: OryLoginFlowOptions?
+    private(set) var receivedLoginSessionToken: String?
     private(set) var submittedDeviceName: String?
     private(set) var submittedClientKeyID: String?
     private(set) var submittedPINProof: Data?
@@ -52,13 +57,16 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
         currentSession: Result<OrySession, OryClientError> = .failure(.notAuthenticated),
         revokeSession: Result<Void, OryClientError> = .success(()),
         createLoginFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
+        getLoginFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         submitLogin: Result<LoginSubmissionOutcome, OryClientError> = .failure(.notAuthenticated),
         createRegistrationFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
+        getRegistrationFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         submitRegistration: Result<RegistrationOutcome, OryClientError> = .failure(.notAuthenticated),
         createVerificationFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         getVerificationFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         submitVerification: Result<VerificationOutcome, OryClientError> = .failure(.notAuthenticated),
         createRecoveryFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
+        getRecoveryFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         submitRecovery: Result<RecoveryOutcome, OryClientError> = .failure(.notAuthenticated),
         createSettingsFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         getSettingsFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
@@ -81,13 +89,16 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
         self.currentSessionResult = currentSession
         self.revokeSessionResult = revokeSession
         self.createLoginFlowResult = createLoginFlow
+        self.getLoginFlowResult = getLoginFlow
         self.submitLoginResult = submitLogin
         self.createRegistrationFlowResult = createRegistrationFlow
+        self.getRegistrationFlowResult = getRegistrationFlow
         self.submitRegistrationResult = submitRegistration
         self.createVerificationFlowResult = createVerificationFlow
         self.getVerificationFlowResult = getVerificationFlow
         self.submitVerificationResult = submitVerification
         self.createRecoveryFlowResult = createRecoveryFlow
+        self.getRecoveryFlowResult = getRecoveryFlow
         self.submitRecoveryResult = submitRecovery
         self.createSettingsFlowResult = createSettingsFlow
         self.getSettingsFlowResult = getSettingsFlow
@@ -115,17 +126,28 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
         try revokeSessionResult.get()
     }
 
-    func createLoginFlow() async throws -> OryFlow {
-        try createLoginFlowResult.get()
+    func createLoginFlow(options: OryLoginFlowOptions, sessionToken: String?) async throws -> OryFlow {
+        receivedLoginFlowOptions = options
+        receivedLoginSessionToken = sessionToken
+        return try createLoginFlowResult.get()
+    }
+
+    func getLoginFlow(id: String) async throws -> OryFlow {
+        try getLoginFlowResult.get()
     }
 
     func submitLogin(url: URL, fields: [String: String], sessionToken: String?) async throws -> LoginSubmissionOutcome {
         submitCallCount += 1
+        receivedLoginSessionToken = sessionToken
         return try submitLoginResult.get()
     }
 
     func createRegistrationFlow() async throws -> OryFlow {
         try createRegistrationFlowResult.get()
+    }
+
+    func getRegistrationFlow(id: String) async throws -> OryFlow {
+        try getRegistrationFlowResult.get()
     }
 
     func submitRegistration(url: URL, fields: [String: String], sessionToken: String?) async throws -> RegistrationOutcome {
@@ -148,6 +170,10 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
 
     func createRecoveryFlow() async throws -> OryFlow {
         try createRecoveryFlowResult.get()
+    }
+
+    func getRecoveryFlow(id: String) async throws -> OryFlow {
+        try getRecoveryFlowResult.get()
     }
 
     func submitRecovery(url: URL, fields: [String: String]) async throws -> RecoveryOutcome {
@@ -278,10 +304,11 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
 // MARK: - Fakes for device-authn domain values
 
 extension DeviceEnrollmentChallenge {
-    static func fake() -> DeviceEnrollmentChallenge {
+    static func fake(identityID: String = "identity-1") -> DeviceEnrollmentChallenge {
         DeviceEnrollmentChallenge(
             submitURL: URL(string: "https://ory.test/settings")!,
-            nonce: Data("nonce".utf8)
+            nonce: Data("nonce".utf8),
+            identityID: identityID
         )
     }
 }

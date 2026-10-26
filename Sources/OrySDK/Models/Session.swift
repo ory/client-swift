@@ -12,7 +12,7 @@ public typealias Session = OrySDKAPI.Session
 
 extension OrySDKAPI {
 
-/** A Session */
+/** A Session. For requests from an origin in &#x60;security.restricted_origins&#x60;, public endpoints return only &#x60;id&#x60; and &#x60;active&#x60;. */
 public struct Session: Sendable, Codable, Hashable {
 
     /** Active state. If false the session is no longer active. */

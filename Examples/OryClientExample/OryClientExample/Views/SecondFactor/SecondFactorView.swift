@@ -11,7 +11,11 @@ struct SecondFactorView: View {
 
     var body: some View {
         Group {
-            if viewModel.isPINEnrolled {
+            if !viewModel.isLoaded {
+                ProgressView()
+            } else if let secondFactorLogin = viewModel.secondFactorLogin {
+                NavigationStack { LoginView(viewModel: secondFactorLogin) }
+            } else if viewModel.isPINEnrolled {
                 PINEntryView(
                     title: "Verify it's you",
                     prompt: "Enter your PIN to verify this device and continue.",

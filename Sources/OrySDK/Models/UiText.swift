@@ -14,21 +14,15 @@ extension OrySDKAPI {
 
 public struct UiText: Sendable, Codable, Hashable {
 
-    public enum ModelType: String, Sendable, Codable, CaseIterable, CaseIterableDefaultsLast {
-        case info = "info"
-        case error = "error"
-        case success = "success"
-        case unknownDefaultOpenApi = "unknown_default_open_api"
-    }
     /** The message's context. Useful when customizing messages. */
     public var context: JSONValue?
     public var id: Int64
     /** The message text. Written in american english. */
     public var text: String
     /** The message type. info Info error Error success Success */
-    public var type: ModelType
+    public var type: String
 
-    public init(context: JSONValue? = nil, id: Int64, text: String, type: ModelType) {
+    public init(context: JSONValue? = nil, id: Int64, text: String, type: String) {
         self.context = context
         self.id = id
         self.text = text
@@ -56,10 +50,3 @@ public struct UiText: Sendable, Codable, Hashable {
 }
 
 extension OrySDKAPI.UiText: Identifiable {}
-
-extension OrySDKAPI.UiText: UnknownCaseCheckable {
-    public var containsUnknownDefaultOpenApiCase: Bool {
-        if type == .unknownDefaultOpenApi { return true }
-        return false
-    }
-}

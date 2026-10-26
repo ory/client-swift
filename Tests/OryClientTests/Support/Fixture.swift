@@ -18,13 +18,15 @@ enum Fixture {
     static var settingsFlowDeviceAuthn: Data { load("settings-flow-deviceauthn") }
     static var settingsFlowDeviceAuthnUnknownContinueWith: Data { load("settings-flow-deviceauthn-unknown-continue-with") }
     static var settingsFlowDeviceList: Data { load("settings-flow-device-list") }
-    static var loginFlowUnknownGroup: Data { load("login-flow-unknown-group") }
+    static var loginFlowUnknownValues: Data { load("login-flow-unknown-values") }
     static var loginFlowUnknownNodeType: Data { load("login-flow-unknown-node-type") }
     static var successfulLoginUnknownContinueWith: Data { load("successful-login-unknown-continue-with") }
     static var successfulRegistrationUnknownContinueWith: Data { load("successful-registration-unknown-continue-with") }
     static var registrationFlow: Data { load("registration-flow") }
     static var successfulRegistration: Data { load("successful-registration") }
     static var successfulRegistrationNoSession: Data { load("successful-registration-no-session") }
+    static var successfulRegistrationIdentityInSession: Data { load("successful-registration-identity-in-session") }
+    static var successfulRegistrationNoIdentity: Data { load("successful-registration-no-identity") }
     static var successfulRegistrationVerification: Data { load("successful-registration-verification") }
     static var verificationFlow: Data { load("verification-flow") }
     static var verificationFlowVerified: Data { load("verification-flow-verified") }

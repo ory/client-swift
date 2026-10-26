@@ -9,7 +9,8 @@ import OryClient
 /// this view model submits them back. Two things are specific to settings: it requires a
 /// signed-in session (``OryClient`` reads the stored token for you), and a sensitive change
 /// on an old session throws ``OryClientError/reauthenticationRequired`` — the user is still
-/// signed in, so a real app steps them up (for example with a PIN or password) and retries.
+/// signed in, so the view model asks them to re-authenticate in a refresh login flow and then
+/// retries the change.
 @MainActor
 @Observable
 final class SettingsViewModel {
@@ -26,6 +27,8 @@ final class SettingsViewModel {
     private(set) var isSubmitting = false
     private(set) var submitError: String?
     var values = OryFormValues()
+    /// The re-authentication flow shown when a change needs a fresher session.
+    private(set) var reauthentication: LoginViewModel?
 
     private let client: OryClientProtocol
     private let existingFlowID: String?
@@ -82,12 +85,27 @@ final class SettingsViewModel {
                 submitError = "This step isn't supported in this version of the app."
             }
         } catch OryClientError.reauthenticationRequired {
-            // The session is too old for this change. A real app would step the user up —
-            // e.g. `authenticateWithDevice(pin:)` — and then retry the submit.
-            submitError = "This change needs a fresh sign-in. Please re-authenticate and try again."
+            // The session is too old for this change. The user stays signed in: confirm their
+            // credential in a refresh login flow, then retry the same submit.
+            reauthentication = LoginViewModel(
+                client: client,
+                options: OryLoginFlowOptions(refresh: true),
+                onSignedIn: { [weak self] _ in
+                    self?.reauthentication = nil
+                    Task { await self?.submit(pressing: action) }
+                },
+                onForgotPassword: {},
+                onDismiss: { [weak self] in self?.cancelReauthentication() }
+            )
         } catch {
             submitError = error.localizedDescription
         }
+    }
+
+    func cancelReauthentication() {
+        guard reauthentication != nil else { return }
+        reauthentication = nil
+        submitError = "This change needs you to confirm your password."
     }
 
     private func didSave(pressing action: OryInputField) {

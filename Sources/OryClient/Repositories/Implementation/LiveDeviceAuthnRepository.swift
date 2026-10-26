@@ -13,7 +13,8 @@ struct LiveDeviceAuthnRepository: DeviceAuthnRepository {
         let dto = try gateway.decoded(response)
         return DeviceEnrollmentChallenge(
             submitURL: try Self.actionURL(dto.ui.action),
-            nonce: try Self.extractDeviceNonce(from: dto.ui.nodes)
+            nonce: try Self.extractDeviceNonce(from: dto.ui.nodes),
+            identityID: dto.identity.id
         )
     }
 

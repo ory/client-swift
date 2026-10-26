@@ -1,10 +1,10 @@
 import Foundation
 
-/// A request the client is about to send, exposed to a ``OryRequestInterceptor`` for
-/// mutation. Change the headers, and — rarely — the URL, method, or body.
+/// A request the client is about to send, exposed to a ``OryRequestInterceptor``. An
+/// interceptor can change the headers; the method, URL, and body are read-only.
 ///
 /// ``headers`` already contains `Accept`, `Content-Type` for a request with a body, and
-/// `X-Ory-Client`, which tells Ory the client package, its version, and the OS — for example
+/// `Ory-Client`, which tells Ory the client package, its version, and the OS — for example
 /// `ory-client-swift/0.1.0 (iOS 18.2.0)`. It carries no user or device identifiers.
 ///
 /// The session-token header is applied by the client *after* every interceptor runs, so
@@ -12,17 +12,20 @@ import Foundation
 public struct OryOutgoingRequest: Sendable {
 
     /// The HTTP method, e.g. `GET` or `POST`.
-    public var method: String
+    public let method: String
 
     /// The request URL.
-    public var url: URL
+    public let url: URL
 
     /// The request headers.
     public var headers: [String: String]
 
-    /// The request body, if any.
-    public var body: Data?
+    /// A copy of the JSON request body with credential values — such as `password`, `code`,
+    /// `pin_proof`, and `csrf_token` — replaced by `"[REDACTED]"`, so it is safe to log. The
+    /// client sends the original body.
+    public let body: Data?
 
+    /// Creates a request, for example to unit-test your own interceptor.
     public init(method: String, url: URL, headers: [String: String], body: Data?) {
         self.method = method
         self.url = url
@@ -34,8 +37,8 @@ public struct OryOutgoingRequest: Sendable {
 /// Adapts the client's outgoing requests.
 ///
 /// Conform a type and pass it in ``OryClientConfiguration/requestInterceptors`` to attach
-/// headers such as tracing or correlation IDs, or otherwise adjust every request.
-/// Interceptors run in array order, each receiving the previous one's output.
+/// headers such as tracing or correlation IDs. Interceptors run in array order, each receiving
+/// the previous one's output. Only the headers an interceptor returns affect the request.
 ///
 /// ```swift
 /// struct TracingInterceptor: OryRequestInterceptor {

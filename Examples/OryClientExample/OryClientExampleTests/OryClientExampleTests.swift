@@ -40,6 +40,60 @@ struct OryClientExampleTests {
         #expect(viewModel.submitError != nil)
     }
 
+    @Test("An expired login continues with the replacement flow")
+    func loginExpiredContinuesWithReplacement() async {
+        let stub = OryClientStub(
+            createLoginFlowResult: .success(Fixtures.flow(.login)),
+            getLoginFlowResult: .success(OryFlow(id: "replacement", kind: .login, actions: [Fixtures.submitAction])),
+            submitLoginFlowResult: Fixtures.expired
+        )
+        let viewModel = LoginViewModel(client: stub, onSignedIn: { _ in }, onForgotPassword: {}, onDismiss: {})
+        await viewModel.start()
+
+        await viewModel.submit(pressing: Fixtures.submitAction)
+
+        #expect(await stub.requestedLoginFlowID == "replacement")
+        #expect(viewModel.state.flowID == "replacement")
+        #expect(await stub.createLoginFlowCallCount == 1)
+    }
+
+    @Test("An expired re-authentication starts over, because the replacement is not a refresh")
+    func loginExpiredRefreshStartsOver() async {
+        let options = OryLoginFlowOptions(refresh: true, aal: .aal2)
+        let stub = OryClientStub(
+            createLoginFlowResult: .success(
+                OryFlow(id: "flow-1", kind: .login, actions: [Fixtures.submitAction], requestedAAL: .aal2, isRefresh: true)
+            ),
+            getLoginFlowResult: .success(
+                OryFlow(id: "replacement", kind: .login, actions: [Fixtures.submitAction], requestedAAL: .aal2)
+            ),
+            submitLoginFlowResult: Fixtures.expired
+        )
+        let viewModel = LoginViewModel(client: stub, options: options, onSignedIn: { _ in }, onForgotPassword: {}, onDismiss: {})
+        await viewModel.start()
+
+        await viewModel.submit(pressing: Fixtures.submitAction)
+
+        #expect(await stub.createLoginFlowCallCount == 2)
+        #expect(await stub.requestedLoginFlowOptions == options)
+        #expect(viewModel.state.flowID == "flow-1")
+    }
+
+    @Test("An expired login starts over when fetching the replacement fails")
+    func loginExpiredReplacementFailureStartsOver() async {
+        let stub = OryClientStub(
+            createLoginFlowResult: .success(Fixtures.flow(.login)),
+            submitLoginFlowResult: Fixtures.expired
+        )
+        let viewModel = LoginViewModel(client: stub, onSignedIn: { _ in }, onForgotPassword: {}, onDismiss: {})
+        await viewModel.start()
+
+        await viewModel.submit(pressing: Fixtures.submitAction)
+
+        #expect(await stub.createLoginFlowCallCount == 2)
+        #expect(viewModel.state.flowID == "flow-1")
+    }
+
     // MARK: - Registration
 
     @Test("Registration with a session signs the user in")
@@ -201,6 +255,9 @@ private enum Fixtures {
 
     static let errorMessage = OryUIMessage(id: 4_000_006, text: "The credentials are invalid.", kind: .error)
 
+    static let expired: Result<OryFlowResult<OryAuthenticatedSession>, OryClientError> =
+        .failure(.flowExpired(replacementFlowID: "replacement"))
+
     static func session(id: String = "session-1") -> OrySession {
         OrySession(
             id: id,
@@ -221,6 +278,7 @@ private enum Fixtures {
 
 private extension LoginViewModel.State {
     var isForm: Bool { if case .form = self { true } else { false } }
+    var flowID: String? { if case let .form(flow) = self { flow.id } else { nil } }
 }
 
 private extension RegistrationViewModel.State {

@@ -10,7 +10,6 @@
 		09D6E7A32FF2CFAA00000517 /* OryClient in Frameworks */ = {isa = PBXBuildFile; productRef = 09D6E7A22FF2CFAA00000517 /* OryClient */; };
 		09D6E7A52FF2CFAA00000517 /* OryClientTestDoubles in Frameworks */ = {isa = PBXBuildFile; productRef = 09D6E7A42FF2CFAA00000517 /* OryClientTestDoubles */; };
 		0AF1FF012FF2CFAA00000517 /* FlowStacks in Frameworks */ = {isa = PBXBuildFile; productRef = 0AF1FF022FF2CFAA00000517 /* FlowStacks */; };
-		0AF1FF042FF2CFAA00000517 /* OryClient in Frameworks */ = {isa = PBXBuildFile; productRef = 0AF1FF052FF2CFAA00000517 /* OryClient */; };
 		0AF1FF112FF2CFAA00000517 /* OryClientSimulator in Frameworks */ = {isa = PBXBuildFile; productRef = 0AF1FF102FF2CFAA00000517 /* OryClientSimulator */; };
 /* End PBXBuildFile section */
 
@@ -61,6 +60,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				09D6E7A32FF2CFAA00000517 /* OryClient in Frameworks */,
+				09D6E7A52FF2CFAA00000517 /* OryClientTestDoubles in Frameworks */,
 				0AF1FF112FF2CFAA00000517 /* OryClientSimulator in Frameworks */,
 				0AF1FF012FF2CFAA00000517 /* FlowStacks in Frameworks */,
 			);
@@ -70,8 +70,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				09D6E7A52FF2CFAA00000517 /* OryClientTestDoubles in Frameworks */,
-				0AF1FF042FF2CFAA00000517 /* OryClient in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -126,6 +124,7 @@
 			name = OryClientExample;
 			packageProductDependencies = (
 				09D6E7A22FF2CFAA00000517 /* OryClient */,
+				09D6E7A42FF2CFAA00000517 /* OryClientTestDoubles */,
 				0AF1FF102FF2CFAA00000517 /* OryClientSimulator */,
 				0AF1FF022FF2CFAA00000517 /* FlowStacks */,
 			);
@@ -151,8 +150,6 @@
 			);
 			name = OryClientExampleTests;
 			packageProductDependencies = (
-				09D6E7A42FF2CFAA00000517 /* OryClientTestDoubles */,
-				0AF1FF052FF2CFAA00000517 /* OryClient */,
 			);
 			productName = OryClientExampleTests;
 			productReference = 09D6E7782FF2CE6600000517 /* OryClientExampleTests.xctest */;
@@ -632,10 +629,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0AF1FF032FF2CFAA00000517 /* XCRemoteSwiftPackageReference "FlowStacks" */;
 			productName = FlowStacks;
-		};
-		0AF1FF052FF2CFAA00000517 /* OryClient */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = OryClient;
 		};
 		0AF1FF102FF2CFAA00000517 /* OryClientSimulator */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -4,6 +4,10 @@ import SwiftUI
 /// Renders any server-driven Ory flow — inputs from `flow.nodes`, buttons from
 /// `flow.actions`, messages — so login and registration reuse one view. `OryClient`
 /// stays UI-agnostic; this is the glue an integrator writes once.
+///
+/// When the flow offers several methods (`flow.availableMethods`, for example a password and a
+/// one-time code), a picker shows one method at a time: the shared fields such as the
+/// identifier stay visible, and only the chosen method's fields and buttons are added.
 struct FlowFormView: View {
 
     let flow: OryFlow
@@ -11,6 +15,28 @@ struct FlowFormView: View {
     let isSubmitting: Bool
     let submitError: String?
     let onSubmit: (OryInputField) -> Void
+
+    @State private var selectedMethod: OryNodeGroup?
+
+    /// Device authentication signs with this device's key, so the app offers it on its own
+    /// screens (`loginWithDevice`, `authenticateWithDevice`) instead of in the generic form.
+    /// Social sign-in and SSO continue in a browser (`browserLocationChangeRequired`), which this
+    /// app does not handle, so their buttons are not shown.
+    private static let hiddenGroups: Set<OryNodeGroup> = [.deviceAuthn, .oidc, .saml]
+
+    private var methods: [OryNodeGroup] {
+        flow.availableMethods.filter { !Self.hiddenGroups.contains($0) }
+    }
+
+    private var activeMethod: OryNodeGroup? {
+        selectedMethod.flatMap { methods.contains($0) ? $0 : nil } ?? methods.first
+    }
+
+    /// A node or action is shown when it is shared, or belongs to the chosen method.
+    private func isShown(_ group: OryNodeGroup) -> Bool {
+        guard !Self.hiddenGroups.contains(group) else { return false }
+        return !methods.contains(group) || methods.count == 1 || group == activeMethod
+    }
 
     var body: some View {
         Form {
@@ -29,14 +55,25 @@ struct FlowFormView: View {
                 }
             }
 
+            if methods.count > 1 {
+                Section {
+                    Picker("Method", selection: Binding(get: { activeMethod }, set: { selectedMethod = $0 })) {
+                        ForEach(methods, id: \.self) { method in
+                            Text(methodTitle(method)).tag(Optional(method))
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+            }
+
             Section {
-                ForEach(flow.nodes) { node in
+                ForEach(flow.nodes.filter { isShown($0.group) }) { node in
                     row(for: node)
                 }
             }
 
             Section {
-                ForEach(flow.actions, id: \.self) { action in
+                ForEach(flow.actions.filter { isShown($0.group) }, id: \.self) { action in
                     Button(actionTitle(for: action)) { onSubmit(action) }
                         .disabled(action.isDisabled)
                 }
@@ -47,6 +84,17 @@ struct FlowFormView: View {
             if isSubmitting {
                 ProgressView().controlSize(.large)
             }
+        }
+    }
+
+    private func methodTitle(_ method: OryNodeGroup) -> String {
+        switch method {
+        case .password: "Password"
+        case .code: "Email code"
+        case .totp: "Authenticator app"
+        case .lookupSecret: "Backup code"
+        case .profile: "Profile"
+        default: method.rawValue
         }
     }
 
@@ -73,6 +121,11 @@ struct FlowFormView: View {
             )
         case let .text(text):
             Text(text)
+        case .image where node.id == "totp_qr":
+            // The authenticator app QR code arrives inline; `totpSetup` decodes it.
+            if let png = flow.totpSetup?.qrCodePNG, let image = UIImage(data: png) {
+                Image(uiImage: image).interpolation(.none).resizable().scaledToFit().frame(maxWidth: 220)
+            }
         case let .image(url):
             AsyncImage(url: url) { $0.resizable().scaledToFit() } placeholder: { ProgressView() }
         case let .link(label, url):
@@ -146,7 +199,7 @@ private struct FlowInputRow: View {
         case .currentPassword: return .password
         case .newPassword: return .newPassword
         case .oneTimeCode: return .oneTimeCode
-        case .username: return .username
+        case .username, .usernameWebAuthn: return .username
         default: return nil
         }
     }

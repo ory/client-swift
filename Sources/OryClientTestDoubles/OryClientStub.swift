@@ -24,13 +24,16 @@ public actor OryClientStub: OryClientProtocol {
     private var currentSessionResult: Result<OrySession, OryClientError>
     private var logoutResult: Result<Void, OryClientError>
     private var createLoginFlowResult: Result<OryFlow, OryClientError>
+    private var getLoginFlowResult: Result<OryFlow, OryClientError>
     private var submitLoginFlowResult: Result<OryFlowResult<OryAuthenticatedSession>, OryClientError>
     private var createRegistrationFlowResult: Result<OryFlow, OryClientError>
+    private var getRegistrationFlowResult: Result<OryFlow, OryClientError>
     private var submitRegistrationFlowResult: Result<OryFlowResult<OryRegistrationResult>, OryClientError>
     private var createVerificationFlowResult: Result<OryFlow, OryClientError>
     private var getVerificationFlowResult: Result<OryFlow, OryClientError>
     private var submitVerificationFlowResult: Result<OryFlowResult<OryVerificationResult>, OryClientError>
     private var createRecoveryFlowResult: Result<OryFlow, OryClientError>
+    private var getRecoveryFlowResult: Result<OryFlow, OryClientError>
     private var submitRecoveryFlowResult: Result<OryFlowResult<OryRecoveryResult>, OryClientError>
     private var createSettingsFlowResult: Result<OryFlow, OryClientError>
     private var getSettingsFlowResult: Result<OryFlow, OryClientError>
@@ -73,6 +76,10 @@ public actor OryClientStub: OryClientProtocol {
     private var lastEnrolledDeviceName: String?
     private var lastEnrolledDeviceProtection: OryDeviceProtection?
     private var lastRequestedSettingsFlowID: String?
+    private var lastRequestedRecoveryFlowID: String?
+    private var lastRequestedRegistrationFlowID: String?
+    private var lastRequestedLoginFlowID: String?
+    private var lastLoginFlowOptions: OryLoginFlowOptions?
 
     /// Creates a stub. Each result defaults to throwing ``OryClientError/notAuthenticated``.
     public init(
@@ -82,13 +89,16 @@ public actor OryClientStub: OryClientProtocol {
         currentSessionResult: Result<OrySession, OryClientError> = .failure(.notAuthenticated),
         logoutResult: Result<Void, OryClientError> = .success(()),
         createLoginFlowResult: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
+        getLoginFlowResult: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         submitLoginFlowResult: Result<OryFlowResult<OryAuthenticatedSession>, OryClientError> = .failure(.notAuthenticated),
         createRegistrationFlowResult: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
+        getRegistrationFlowResult: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         submitRegistrationFlowResult: Result<OryFlowResult<OryRegistrationResult>, OryClientError> = .failure(.notAuthenticated),
         createVerificationFlowResult: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         getVerificationFlowResult: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         submitVerificationFlowResult: Result<OryFlowResult<OryVerificationResult>, OryClientError> = .failure(.notAuthenticated),
         createRecoveryFlowResult: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
+        getRecoveryFlowResult: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         submitRecoveryFlowResult: Result<OryFlowResult<OryRecoveryResult>, OryClientError> = .failure(.notAuthenticated),
         createSettingsFlowResult: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         getSettingsFlowResult: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
@@ -108,13 +118,16 @@ public actor OryClientStub: OryClientProtocol {
         self.currentSessionResult = currentSessionResult
         self.logoutResult = logoutResult
         self.createLoginFlowResult = createLoginFlowResult
+        self.getLoginFlowResult = getLoginFlowResult
         self.submitLoginFlowResult = submitLoginFlowResult
         self.createRegistrationFlowResult = createRegistrationFlowResult
+        self.getRegistrationFlowResult = getRegistrationFlowResult
         self.submitRegistrationFlowResult = submitRegistrationFlowResult
         self.createVerificationFlowResult = createVerificationFlowResult
         self.getVerificationFlowResult = getVerificationFlowResult
         self.submitVerificationFlowResult = submitVerificationFlowResult
         self.createRecoveryFlowResult = createRecoveryFlowResult
+        self.getRecoveryFlowResult = getRecoveryFlowResult
         self.submitRecoveryFlowResult = submitRecoveryFlowResult
         self.createSettingsFlowResult = createSettingsFlowResult
         self.getSettingsFlowResult = getSettingsFlowResult
@@ -146,6 +159,11 @@ public actor OryClientStub: OryClientProtocol {
         createLoginFlowResult = result
     }
 
+    /// Sets the result the next call to ``getLoginFlow(id:)`` returns.
+    public func setGetLoginFlowResult(_ result: Result<OryFlow, OryClientError>) {
+        getLoginFlowResult = result
+    }
+
     /// Sets the result the next call to ``submitLoginFlow(_:values:pressing:)`` returns.
     public func setSubmitLoginFlowResult(_ result: Result<OryFlowResult<OryAuthenticatedSession>, OryClientError>) {
         submitLoginFlowResult = result
@@ -154,6 +172,11 @@ public actor OryClientStub: OryClientProtocol {
     /// Sets the result the next call to ``createRegistrationFlow()`` returns.
     public func setCreateRegistrationFlowResult(_ result: Result<OryFlow, OryClientError>) {
         createRegistrationFlowResult = result
+    }
+
+    /// Sets the result the next call to ``getRegistrationFlow(id:)`` returns.
+    public func setGetRegistrationFlowResult(_ result: Result<OryFlow, OryClientError>) {
+        getRegistrationFlowResult = result
     }
 
     /// Sets the result the next call to ``submitRegistrationFlow(_:values:pressing:)`` returns.
@@ -179,6 +202,11 @@ public actor OryClientStub: OryClientProtocol {
     /// Sets the result the next call to ``createRecoveryFlow()`` returns.
     public func setCreateRecoveryFlowResult(_ result: Result<OryFlow, OryClientError>) {
         createRecoveryFlowResult = result
+    }
+
+    /// Sets the result the next call to ``getRecoveryFlow(id:)`` returns.
+    public func setGetRecoveryFlowResult(_ result: Result<OryFlow, OryClientError>) {
+        getRecoveryFlowResult = result
     }
 
     /// Sets the result the next call to ``submitRecoveryFlow(_:values:pressing:)`` returns.
@@ -252,6 +280,10 @@ public actor OryClientStub: OryClientProtocol {
     /// How many times ``createLoginFlow()`` has been called.
     public var createLoginFlowCallCount: Int { createLoginFlowCalls }
 
+    /// The options most recently passed to ``createLoginFlow(options:)``, or `nil` before the
+    /// first call. ``createLoginFlow()`` records `OryLoginFlowOptions()`.
+    public var requestedLoginFlowOptions: OryLoginFlowOptions? { lastLoginFlowOptions }
+
     /// How many times ``submitLoginFlow(_:values:pressing:)`` has been called.
     public var submitLoginFlowCallCount: Int { submitLoginFlowCalls }
 
@@ -281,6 +313,15 @@ public actor OryClientStub: OryClientProtocol {
 
     /// How many times ``getSettingsFlow(id:)`` has been called.
     public var getSettingsFlowCallCount: Int { getSettingsFlowCalls }
+
+    /// The id most recently passed to ``getLoginFlow(id:)``.
+    public var requestedLoginFlowID: String? { lastRequestedLoginFlowID }
+
+    /// The id most recently passed to ``getRegistrationFlow(id:)``.
+    public var requestedRegistrationFlowID: String? { lastRequestedRegistrationFlowID }
+
+    /// The id most recently passed to ``getRecoveryFlow(id:)``.
+    public var requestedRecoveryFlowID: String? { lastRequestedRecoveryFlowID }
 
     /// The id most recently passed to ``getSettingsFlow(id:)``.
     public var requestedSettingsFlowID: String? { lastRequestedSettingsFlowID }
@@ -355,9 +396,15 @@ public actor OryClientStub: OryClientProtocol {
         try logoutResult.get()
     }
 
-    public func createLoginFlow() async throws -> OryFlow {
+    public func createLoginFlow(options: OryLoginFlowOptions) async throws -> OryFlow {
         createLoginFlowCalls += 1
+        lastLoginFlowOptions = options
         return try createLoginFlowResult.get()
+    }
+
+    public func getLoginFlow(id: String) async throws -> OryFlow {
+        lastRequestedLoginFlowID = id
+        return try getLoginFlowResult.get()
     }
 
     public func submitLoginFlow(
@@ -371,9 +418,14 @@ public actor OryClientStub: OryClientProtocol {
         return try submitLoginFlowResult.get()
     }
 
-    public func createRegistrationFlow() async throws -> OryFlow {
+    public func createRegistrationFlow(options: OryRegistrationFlowOptions) async throws -> OryFlow {
         createRegistrationFlowCalls += 1
         return try createRegistrationFlowResult.get()
+    }
+
+    public func getRegistrationFlow(id: String) async throws -> OryFlow {
+        lastRequestedRegistrationFlowID = id
+        return try getRegistrationFlowResult.get()
     }
 
     public func submitRegistrationFlow(
@@ -387,7 +439,7 @@ public actor OryClientStub: OryClientProtocol {
         return try submitRegistrationFlowResult.get()
     }
 
-    public func createVerificationFlow() async throws -> OryFlow {
+    public func createVerificationFlow(options: OryVerificationFlowOptions) async throws -> OryFlow {
         createVerificationFlowCalls += 1
         return try createVerificationFlowResult.get()
     }
@@ -408,9 +460,14 @@ public actor OryClientStub: OryClientProtocol {
         return try submitVerificationFlowResult.get()
     }
 
-    public func createRecoveryFlow() async throws -> OryFlow {
+    public func createRecoveryFlow(options: OryRecoveryFlowOptions) async throws -> OryFlow {
         createRecoveryFlowCalls += 1
         return try createRecoveryFlowResult.get()
+    }
+
+    public func getRecoveryFlow(id: String) async throws -> OryFlow {
+        lastRequestedRecoveryFlowID = id
+        return try getRecoveryFlowResult.get()
     }
 
     public func submitRecoveryFlow(
@@ -424,7 +481,7 @@ public actor OryClientStub: OryClientProtocol {
         return try submitRecoveryFlowResult.get()
     }
 
-    public func createSettingsFlow() async throws -> OryFlow {
+    public func createSettingsFlow(options: OrySettingsFlowOptions) async throws -> OryFlow {
         createSettingsFlowCalls += 1
         return try createSettingsFlowResult.get()
     }

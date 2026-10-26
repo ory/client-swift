@@ -46,7 +46,8 @@ public extension OryErrorID {
     /// The requested flow is not enabled for this project.
     static let selfServiceFlowDisabled = OryErrorID(rawValue: "self_service_flow_disabled")
 
-    /// The flow can only continue in a browser. Native apps should not see this.
+    /// The flow can only continue in a browser. With a target URL it surfaces as
+    /// ``OryClientError/browserLocationChangeRequired(redirectURL:)``.
     static let browserLocationChangeRequired = OryErrorID(rawValue: "browser_location_change_required")
 
     /// A session already exists, so this flow cannot be started.

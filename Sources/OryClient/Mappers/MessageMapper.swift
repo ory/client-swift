@@ -11,7 +11,7 @@ enum MessageMapper: Mapper {
             OryUIMessage(
                 id: Int(input.id),
                 text: input.text,
-                kind: input.type == .unknownDefaultOpenApi ? .unknown : OryUIMessage.Kind(rawValue: input.type.rawValue),
+                kind: OryUIMessage.Kind(rawValue: input.type),
                 context: context(input.context)
             )
         )

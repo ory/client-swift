@@ -76,10 +76,6 @@ public extension OryNodeGroup {
 
     /// OAuth2 consent.
     static let oauth2Consent = OryNodeGroup(rawValue: "oauth2_consent")
-
-    /// A group sent by a backend newer than this client, whose name was not preserved.
-    /// Render the node best-effort or ignore it.
-    static let unknown = OryNodeGroup(rawValue: "unknown")
 }
 
 /// A single renderable element of a flow.

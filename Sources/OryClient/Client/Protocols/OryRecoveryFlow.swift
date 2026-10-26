@@ -6,9 +6,30 @@ public protocol OryRecoveryFlow: Sendable {
 
     /// Starts a recovery flow.
     ///
+    /// - Parameter options: How the flow starts. Call ``createRecoveryFlow()`` for the defaults.
     /// - Returns: A renderable recovery ``OryFlow``.
     /// - Throws: An ``OryClientError`` on network or server failure.
-    func createRecoveryFlow() async throws -> OryFlow
+    func createRecoveryFlow(options: OryRecoveryFlowOptions) async throws -> OryFlow
+
+    /// Fetches an existing recovery flow by id.
+    ///
+    /// Use it to continue a flow the server named — for example the replacement in
+    /// ``OryClientError/flowExpired(replacementFlowID:)``, which carries the message telling the
+    /// user the previous attempt took too long:
+    ///
+    /// ```swift
+    /// do {
+    ///     result = try await client.submitRecoveryFlow(flow, values: values, pressing: action)
+    /// } catch OryClientError.flowExpired(let replacementFlowID?) {
+    ///     flow = try await client.getRecoveryFlow(id: replacementFlowID)
+    /// }
+    /// ```
+    ///
+    /// - Parameter id: The flow's id.
+    /// - Returns: The renderable recovery ``OryFlow``.
+    /// - Throws: ``OryClientError/flowExpired(replacementFlowID:)`` when that flow expired as
+    ///   well, or another ``OryClientError`` on network or server failure.
+    func getRecoveryFlow(id: String) async throws -> OryFlow
 
     /// Submits the user's input to a recovery flow.
     ///
@@ -36,4 +57,14 @@ public protocol OryRecoveryFlow: Sendable {
         values: OryFormValues,
         pressing action: OryInputField
     ) async throws -> OryFlowResult<OryRecoveryResult>
+}
+
+extension OryRecoveryFlow {
+
+    /// Starts a recovery flow with default options.
+    ///
+    /// See ``createRecoveryFlow(options:)``.
+    public func createRecoveryFlow() async throws -> OryFlow {
+        try await createRecoveryFlow(options: OryRecoveryFlowOptions())
+    }
 }

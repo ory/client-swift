@@ -59,7 +59,7 @@ struct LiveFrontendRepositoryTests {
         let (dataSource, _) = makeDataSource(data: Fixture.loginFlow, status: 200)
 
         // When
-        let flow = try await dataSource.createLoginFlow()
+        let flow = try await dataSource.createLoginFlow(options: OryLoginFlowOptions(), sessionToken: nil)
 
         // Then identifier and password are renderable inputs
         #expect(flow.id == "login-1")
@@ -80,7 +80,7 @@ struct LiveFrontendRepositoryTests {
         let (dataSource, _) = makeDataSource(data: Fixture.loginFlow, status: 200)
 
         // When
-        let flow = try await dataSource.createLoginFlow()
+        let flow = try await dataSource.createLoginFlow(options: OryLoginFlowOptions(), sessionToken: nil)
 
         // Then
         let password = flow.nodes.first { $0.id == "password" }
@@ -88,14 +88,24 @@ struct LiveFrontendRepositoryTests {
         #expect(password?.group.rawValue == "password")
     }
 
-    @Test("createLoginFlow tolerates an unknown node group")
-    func createLoginFlowUnknownGroup() async throws {
-        // Given a flow whose node uses a group this build does not know
-        let (dataSource, _) = makeDataSource(data: Fixture.loginFlowUnknownGroup, status: 200)
+    @Test("createLoginFlow keeps group, input type, autocomplete, and message type values this build does not know")
+    func createLoginFlowUnknownValues() async throws {
+        // Given a flow whose values all come from a backend newer than this build
+        let (dataSource, _) = makeDataSource(data: Fixture.loginFlowUnknownValues, status: 200)
 
-        // When / Then it still decodes and the node maps to the .unknown group
-        let flow = try await dataSource.createLoginFlow()
-        #expect(flow.nodes.contains { $0.group == .unknown })
+        // When
+        let flow = try await dataSource.createLoginFlow(options: OryLoginFlowOptions(), sessionToken: nil)
+
+        // Then each value keeps the wire string, so an app can match it without a client update
+        let node = try #require(flow.nodes.first { $0.id == "future_field" })
+        guard case let .input(field) = node.content else {
+            Issue.record("expected an input node, got \(node.content)")
+            return
+        }
+        #expect(node.group == OryNodeGroup(rawValue: "future_method"))
+        #expect(field.kind == OryInputField.Kind(rawValue: "future_input_type"))
+        #expect(field.autocomplete == OryInputField.Autocomplete(rawValue: "future-hint"))
+        #expect(flow.messages.map(\.kind) == [OryUIMessage.Kind(rawValue: "future_message_type")])
     }
 
     @Test("createLoginFlow tolerates a node type this build does not know")
@@ -104,7 +114,7 @@ struct LiveFrontendRepositoryTests {
         // keep working: the unknown node is dropped, never the whole flow.
         let (dataSource, _) = makeDataSource(data: Fixture.loginFlowUnknownNodeType, status: 200)
 
-        let flow = try await dataSource.createLoginFlow()
+        let flow = try await dataSource.createLoginFlow(options: OryLoginFlowOptions(), sessionToken: nil)
 
         #expect(flow.nodes.contains { node in
             if case let .input(field) = node.content { return field.name == .identifier }
@@ -234,6 +244,45 @@ struct LiveFrontendRepositoryTests {
         #expect(identity.id == "identity-2")
         #expect(session == nil)
         #expect(token == nil)
+    }
+
+    @Test("submitRegistration takes the identity from the session when the response omits it")
+    func submitRegistrationIdentityInSession() async throws {
+        // Given a 200 without a top-level identity, whose session carries one
+        let (dataSource, _) = makeDataSource(data: Fixture.successfulRegistrationIdentityInSession, status: 200)
+
+        // When
+        let outcome = try await dataSource.submitRegistration(
+            url: URL(string: "https://example.com/registration")!, fields: [:], sessionToken: nil
+        )
+
+        // Then
+        guard case let .success(identity, session, token, _) = outcome else {
+            Issue.record("expected success, got \(outcome)")
+            return
+        }
+        #expect(identity.id == "identity-3")
+        #expect(session?.id == "session-10")
+        #expect(token == "ory_st_reg")
+    }
+
+    @Test("submitRegistration throws unexpectedResponse when no identity is returned at all")
+    func submitRegistrationNoIdentity() async throws {
+        // Given a 200 with neither an identity nor a session that carries one
+        let (dataSource, _) = makeDataSource(data: Fixture.successfulRegistrationNoIdentity, status: 200)
+
+        // When / Then
+        do {
+            _ = try await dataSource.submitRegistration(
+                url: URL(string: "https://example.com/registration")!, fields: [:], sessionToken: nil
+            )
+            Issue.record("expected to throw")
+        } catch let error as OryClientError {
+            guard case .unexpectedResponse = error else {
+                Issue.record("expected unexpectedResponse, got \(error)")
+                return
+            }
+        }
     }
 
     @Test("submitRegistration returns pending on 400")

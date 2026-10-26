@@ -15,24 +15,6 @@ extension OrySDKAPI {
 /** Nodes are represented as HTML elements or their native UI equivalents. For example, a node can be an &#x60;&lt;img&gt;&#x60; tag, or an &#x60;&lt;input element&gt;&#x60; but also &#x60;some plain text&#x60;. */
 public struct UiNode: Sendable, Codable, Hashable {
 
-    public enum Group: String, Sendable, Codable, CaseIterable, CaseIterableDefaultsLast {
-        case _default = "default"
-        case password = "password"
-        case oidc = "oidc"
-        case profile = "profile"
-        case link = "link"
-        case code = "code"
-        case totp = "totp"
-        case lookupSecret = "lookup_secret"
-        case webauthn = "webauthn"
-        case passkey = "passkey"
-        case identifierFirst = "identifier_first"
-        case captcha = "captcha"
-        case saml = "saml"
-        case deviceauthn = "deviceauthn"
-        case oauth2Consent = "oauth2_consent"
-        case unknownDefaultOpenApi = "unknown_default_open_api"
-    }
     public enum ModelType: String, Sendable, Codable, CaseIterable, CaseIterableDefaultsLast {
         case text = "text"
         case input = "input"
@@ -44,13 +26,13 @@ public struct UiNode: Sendable, Codable, Hashable {
     }
     public var attributes: UiNodeAttributes
     /** Group specifies which group (e.g. password authenticator) this node belongs to. default DefaultGroup password PasswordGroup oidc OpenIDConnectGroup profile ProfileGroup link LinkGroup code CodeGroup totp TOTPGroup lookup_secret LookupGroup webauthn WebAuthnGroup passkey PasskeyGroup identifier_first IdentifierFirstGroup captcha CaptchaGroup saml SAMLGroup deviceauthn DeviceAuthnGroup */
-    public var group: Group
+    public var group: String
     public var messages: [UiText]
     public var meta: UiNodeMeta
     /** The node's type text Text input Input img Image a Anchor script Script div Division */
     public var type: ModelType
 
-    public init(attributes: UiNodeAttributes, group: Group, messages: [UiText], meta: UiNodeMeta, type: ModelType) {
+    public init(attributes: UiNodeAttributes, group: String, messages: [UiText], meta: UiNodeMeta, type: ModelType) {
         self.attributes = attributes
         self.group = group
         self.messages = messages
@@ -82,7 +64,6 @@ public struct UiNode: Sendable, Codable, Hashable {
 
 extension OrySDKAPI.UiNode: UnknownCaseCheckable {
     public var containsUnknownDefaultOpenApiCase: Bool {
-        if group == .unknownDefaultOpenApi { return true }
         if type == .unknownDefaultOpenApi { return true }
         return false
     }

@@ -39,6 +39,32 @@ public protocol OryDeviceEnrollment: Sendable {
     /// - Throws: ``OryClientError/storage(underlying:)`` if the store cannot be read.
     func deviceEnrollment() async throws -> OryDeviceEnrollmentState
 
+    /// Whether this device has an enrolled key for the account of `session`.
+    ///
+    /// A device holds a key for one account at a time. Use this variant once the user is signed
+    /// in — for example on a two-factor settings screen — so a key enrolled by another account on
+    /// this device is not offered as theirs:
+    ///
+    /// ```swift
+    /// let session = try await client.currentSession()
+    /// switch try await client.deviceEnrollment(for: session) {
+    /// case .enrolledForAnotherAccount:
+    ///     // Offer "Use this device for your account", which calls forgetDevice() and enrolls.
+    /// case .notEnrolled:
+    ///     // Offer "Set up this device".
+    /// default:
+    ///     // Enrolled for this account.
+    /// }
+    /// ```
+    ///
+    /// Like ``deviceEnrollment()`` it reads local state only.
+    ///
+    /// - Parameter session: The signed-in session, from ``OrySessionManagement/currentSession()``.
+    /// - Returns: ``OryDeviceEnrollmentState/enrolledForAnotherAccount`` when the key belongs to
+    ///   another identity, otherwise the same value as ``deviceEnrollment()``.
+    /// - Throws: ``OryClientError/storage(underlying:)`` if the store cannot be read.
+    func deviceEnrollment(for session: OrySession) async throws -> OryDeviceEnrollmentState
+
     /// Enrolls this device as an authenticator, binding a new key to the Secure Enclave.
     ///
     /// Call this for a signed-in user (an AAL1 session is enough). The client generates a
@@ -84,6 +110,11 @@ public protocol OryDeviceEnrollment: Sendable {
     ///     example "My iPhone".
     ///   - protection: How the key verifies the person holding the device. Defaults to
     ///     ``OryDeviceProtection/none``.
+    /// The key belongs to the signed-in account. When this device already holds a key for
+    /// another account, enrollment fails with
+    /// ``OryClientError/deviceAuthenticationEnrolledForAnotherAccount`` before anything changes;
+    /// call ``OryDeviceManagement/forgetDevice()`` first to move device sign-in to this account.
+    ///
     /// - Throws: ``OryClientError/deviceAuthenticationUnavailable`` on the Simulator or an
     ///   unsupported device, ``OryClientError/deviceAuthenticationBiometricsUnavailable`` when
     ///   `protection` is ``OryDeviceProtection/biometrics`` and biometrics cannot be used,
@@ -96,6 +127,12 @@ public protocol OryDeviceEnrollment: Sendable {
 }
 
 extension OryDeviceEnrollment {
+
+    /// The default ignores the session's account and returns ``deviceEnrollment()``.
+    /// ``OryClient`` provides the real implementation.
+    public func deviceEnrollment(for session: OrySession) async throws -> OryDeviceEnrollmentState {
+        try await deviceEnrollment()
+    }
 
     /// Enrolls this device as a second factor, with ``OryDeviceProtection/none``.
     ///

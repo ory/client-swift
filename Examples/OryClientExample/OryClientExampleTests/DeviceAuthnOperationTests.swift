@@ -99,7 +99,7 @@ struct DeviceAuthnOperationTests {
 private actor SuspendedClearDeviceKeyStore: OryDeviceKeyStore {
     nonisolated let deviceOperationScope = UUID().uuidString
     private var key: OryStoredDeviceKey? = OryStoredDeviceKey(
-        clientKeyID: "device-key", localKeyID: "local-key", userVerification: .none
+        clientKeyID: "device-key", localKeyID: "local-key", userVerification: .none, identityID: "device-identity"
     )
     private var clearStarted = false
     private var clearContinuation: CheckedContinuation<Void, Never>?

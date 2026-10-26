@@ -37,6 +37,8 @@ final class DeviceAuthnViewModel {
     private(set) var devices: [OryEnrolledDevice] = []
 
     private(set) var isEnrolled = false
+    /// This device holds a key for another account, so it cannot verify this one.
+    private(set) var isEnrolledForAnotherAccount = false
     private(set) var isPINEnrolled = false
     private(set) var isBiometricEnrolled = false
     private(set) var isBusy = false
@@ -44,10 +46,12 @@ final class DeviceAuthnViewModel {
     private(set) var assuranceLevel: OryAuthenticatorAssuranceLevel
 
     private let client: OryClientProtocol
+    private let session: OrySession
     private let onSessionChanged: (OrySession) -> Void
 
     init(client: OryClientProtocol, session: OrySession, onSessionChanged: @escaping (OrySession) -> Void) {
         self.client = client
+        self.session = session
         self.isAvailable = client.isDeviceAuthenticationAvailable
         self.canUseBiometrics = client.availableDeviceAuthenticationMethods.contains(.biometric)
         self.biometryLabel = client.biometryType.label
@@ -58,10 +62,12 @@ final class DeviceAuthnViewModel {
     /// Reads whether this device already has an enrolled key (and which kind), to pick the
     /// right actions.
     func load() async {
-        // One read answers both "is this device enrolled?" and "with what protection?".
-        let enrollment = (try? await client.deviceEnrollment()) ?? .notEnrolled
+        // One read answers "is this device enrolled for this account?" and "with what protection?".
+        // A device holds a key for one account at a time, so ask about the signed-in one.
+        let enrollment = (try? await client.deviceEnrollment(for: session)) ?? .notEnrolled
+        isEnrolledForAnotherAccount = enrollment == .enrolledForAnotherAccount
         switch enrollment {
-        case .notEnrolled:
+        case .notEnrolled, .enrolledForAnotherAccount:
             isEnrolled = false
             isPINEnrolled = false
             isBiometricEnrolled = false
@@ -225,6 +231,7 @@ final class DeviceAuthnViewModel {
         await run {
             try await self.client.forgetDevice()
             self.isEnrolled = false
+            self.isEnrolledForAnotherAccount = false
             self.isPINEnrolled = false
             self.isBiometricEnrolled = false
             self.status = .success("This device's key was forgotten on this app.")

@@ -11,6 +11,8 @@ struct DeviceLoginChallenge: Sendable {
 struct DeviceEnrollmentChallenge: Sendable {
     let submitURL: URL
     let nonce: Data
+    /// The identity the settings flow belongs to.
+    let identityID: String
 }
 
 /// One device key as the server lists it in the settings flow, before the client decides

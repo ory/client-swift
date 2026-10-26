@@ -107,15 +107,18 @@ actor URLSessionHTTPClient: HTTPClient {
         // Applying the response interceptors is a post-response processing step, not a
         // transport event: a throw here is surfaced to the caller as `unexpectedResponse`,
         // but the observer — which already saw the response — is not told the request failed.
+        let headers = Self.headerFields(httpResponse)
         let received = OryReceivedResponse(
             request: outgoing,
             statusCode: httpResponse.statusCode,
-            headers: Self.headerFields(httpResponse),
-            body: responseData
+            headers: headers,
+            body: CredentialRedaction.redact(responseData) ?? Data()
         )
         do {
-            let intercepted = try await apply(responseInterceptors, to: received)
-            return HTTPResponse(status: intercepted.statusCode, data: intercepted.body, headers: intercepted.headers)
+            for interceptor in responseInterceptors {
+                try await interceptor.intercept(received)
+            }
+            return HTTPResponse(status: httpResponse.statusCode, data: responseData, headers: headers)
         } catch let error as OryClientError {
             throw error
         } catch {
@@ -147,14 +150,14 @@ actor URLSessionHTTPClient: HTTPClient {
             method: resolved.method.rawValue,
             url: resolved.url,
             headers: headers,
-            body: resolved.body
+            body: CredentialRedaction.redact(resolved.body)
         )
         for interceptor in requestInterceptors {
-            outgoing = try await interceptor.intercept(outgoing)
+            outgoing.headers = try await interceptor.intercept(outgoing).headers
         }
-        var urlRequest = URLRequest(url: outgoing.url)
-        urlRequest.httpMethod = outgoing.method
-        urlRequest.httpBody = outgoing.body
+        var urlRequest = URLRequest(url: resolved.url)
+        urlRequest.httpMethod = resolved.method.rawValue
+        urlRequest.httpBody = resolved.body
         for (name, value) in outgoing.headers {
             urlRequest.setValue(value, forHTTPHeaderField: name)
         }
@@ -164,7 +167,7 @@ actor URLSessionHTTPClient: HTTPClient {
         // overwrite it: `setValue(_:forHTTPHeaderField:)` is case-insensitive, so it wins over
         // any header an interceptor set under a differently-cased name.
         if let sessionToken = resolved.sessionToken {
-            guard outgoing.url.isSameOrigin(as: baseURL) else {
+            guard resolved.url.isSameOrigin(as: baseURL) else {
                 throw OryClientError.unexpectedResponse(
                     underlying: UnderlyingError(URLError(.badURL, userInfo: [
                         NSLocalizedDescriptionKey: "Refusing to send the session token outside the project origin.",
@@ -183,14 +186,6 @@ actor URLSessionHTTPClient: HTTPClient {
         let event = OryNetworkRequest(method: outgoing.method, url: outgoing.url, headers: safeHeaders)
 
         return (urlRequest, outgoing, event)
-    }
-
-    private func apply(_ interceptors: [any OryResponseInterceptor], to response: OryReceivedResponse) async throws -> OryReceivedResponse {
-        var response = response
-        for interceptor in interceptors {
-            response = try await interceptor.intercept(response)
-        }
-        return response
     }
 
     private static func headerFields(_ response: HTTPURLResponse) -> [String: String] {

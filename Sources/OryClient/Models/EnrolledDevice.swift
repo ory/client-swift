@@ -9,14 +9,37 @@ public struct OryEnrolledDevice: Sendable, Hashable, Identifiable {
 
     /// The platform the device was enrolled on.
     ///
-    /// - Important: New cases are added in minor releases. End a `switch` that lists every case
-    ///   with `@unknown default:`, so a new case raises a warning instead of a build error, or use
-    ///   `default:` when you handle only some cases.
-    public enum Platform: Sendable, Hashable {
-        case iOS
-        case android
-        /// A platform this build does not know. Ory may add more.
-        case unknown(String)
+    /// A wrapper around the platform name Ory sends rather than an enum, because Ory adds
+    /// platforms over time. Compare against the constants, and keep a `default:` arm when you
+    /// `switch` over it — the compiler requires one:
+    ///
+    /// ```swift
+    /// switch device.platform {
+    /// case .iOS:
+    ///     icon = Image(systemName: "iphone")
+    /// case .android:
+    ///     icon = Image(systemName: "candybarphone")
+    /// default:
+    ///     icon = Image(systemName: "questionmark.square")
+    /// }
+    /// ```
+    public struct Platform: RawRepresentable, Sendable, Hashable, CustomStringConvertible {
+
+        /// The platform name as Ory sends it, for example `iOS`.
+        public let rawValue: String
+
+        /// Creates a platform from the name Ory sends.
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+
+        public var description: String { rawValue }
+
+        /// An iPhone or iPad.
+        public static let iOS = Platform(rawValue: "iOS")
+
+        /// An Android device.
+        public static let android = Platform(rawValue: "Android")
     }
 
     /// The key's stable identifier, unique for this identity.

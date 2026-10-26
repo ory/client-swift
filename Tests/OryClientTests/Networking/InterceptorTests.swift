@@ -28,27 +28,53 @@ struct InterceptorTests {
         }
     }
 
-    private struct BodyRewriter: OryResponseInterceptor {
-        let body: Data
-        func intercept(_ response: OryReceivedResponse) async throws -> OryReceivedResponse {
-            var response = response
-            response.body = body
-            return response
+    private struct NativeLogin: Decodable, Sendable {
+        let sessionToken: String
+
+        enum CodingKeys: String, CodingKey {
+            case sessionToken = "session_token"
         }
     }
 
-    private actor HeaderCapture: OryResponseInterceptor {
+    private struct NativeLoginRequest: FrontendRequest {
+        var method: HTTPMethod { .post }
+        var target: RequestTarget { .path("/self-service/login") }
+        var body: (any Encodable & Sendable)? { ["identifier": "alice@example.com", "password": "hunter2", "method": "password"] }
+        typealias Response = NativeLogin
+    }
+
+    private struct DeviceLoginRequest: FrontendRequest {
+        var method: HTTPMethod { .post }
+        var target: RequestTarget { .path("/self-service/login") }
+        var body: (any Encodable & Sendable)? { ["method": "deviceauthn", "client_key_id": "key-1", "signature": "assertion"] }
+        typealias Response = NativeLogin
+    }
+
+    private actor RequestCapture: OryRequestInterceptor {
+        private(set) var seenBody: Data?
+        func intercept(_ request: OryOutgoingRequest) async throws -> OryOutgoingRequest {
+            seenBody = request.body
+            return request
+        }
+    }
+
+    private actor ResponseCapture: OryResponseInterceptor {
         private(set) var seenTokenValue: String?
-        func intercept(_ response: OryReceivedResponse) async throws -> OryReceivedResponse {
+        private(set) var seenBody: Data?
+        func intercept(_ response: OryReceivedResponse) async throws {
             seenTokenValue = response.request.headers["X-Session-Token"]
-            return response
+            seenBody = response.body
         }
     }
 
     private struct ThrowingResponseInterceptor: OryResponseInterceptor {
-        func intercept(_ response: OryReceivedResponse) async throws -> OryReceivedResponse {
+        func intercept(_ response: OryReceivedResponse) async throws {
             throw TestError.boom
         }
+    }
+
+    private static func json(_ data: Data?) throws -> [String: String] {
+        try JSONDecoder().decode([String: String].self, from: try #require(data))
     }
 
     private enum TestError: Error { case boom }
@@ -99,7 +125,7 @@ struct InterceptorTests {
     func responseInterceptorNeverSeesToken() async throws {
         // Given a response interceptor that captures the request's headers
         InterceptorStubProtocol.configure(body: Data(#"{"a":1}"#.utf8))
-        let capture = HeaderCapture()
+        let capture = ResponseCapture()
         let client = makeClient(response: [capture])
 
         // When a request is sent with a session token
@@ -120,14 +146,60 @@ struct InterceptorTests {
         #expect(InterceptorStubProtocol.lastRequest?.value(forHTTPHeaderField: "X-H") == "v")
     }
 
-    @Test("A response interceptor rewrites the body the client decodes")
-    func responseInterceptorRewritesBody() async throws {
-        InterceptorStubProtocol.configure(body: Data(#"{"a":1}"#.utf8))
-        let client = makeClient(response: [BodyRewriter(body: Data(#"{"a":42}"#.utf8))])
+    @Test("Request interceptors see credentials redacted while the original body is sent")
+    func requestInterceptorSeesRedactedBody() async throws {
+        // Given a request interceptor that captures the body it is shown
+        let capture = RequestCapture()
+        let client = makeClient(request: [capture])
+        let resolved = try FrontendRequestResolver.resolve(NativeLoginRequest(), baseURL: URL(string: "https://example.ory")!)
 
-        let response = try await client.send(ProbeRequest(sessionToken: nil))
+        // When the client builds a password login request
+        let (urlRequest, outgoing, _) = try await client.makeURLRequest(resolved)
 
-        #expect(try response.success() == Probe(a: 42))
+        // Then the interceptor and the outgoing copy see the password redacted, other fields intact
+        let seen = try Self.json(await capture.seenBody)
+        #expect(seen["password"] == CredentialRedaction.placeholder)
+        #expect(seen["identifier"] == "alice@example.com")
+        #expect(seen["method"] == "password")
+        #expect(try Self.json(outgoing.body)["password"] == CredentialRedaction.placeholder)
+
+        // And the request on the wire carries the real password
+        #expect(try Self.json(urlRequest.httpBody)["password"] == "hunter2")
+    }
+
+    @Test("Request interceptors see a device login assertion redacted while the original is sent")
+    func requestInterceptorSeesRedactedDeviceSignature() async throws {
+        // Given a request interceptor that captures the body it is shown
+        let capture = RequestCapture()
+        let client = makeClient(request: [capture])
+        let resolved = try FrontendRequestResolver.resolve(DeviceLoginRequest(), baseURL: URL(string: "https://example.ory")!)
+
+        // When the client builds a device login request
+        let (urlRequest, outgoing, _) = try await client.makeURLRequest(resolved)
+
+        // Then the interceptor and the outgoing copy see the assertion redacted
+        let seen = try Self.json(await capture.seenBody)
+        #expect(seen["signature"] == CredentialRedaction.placeholder)
+        #expect(seen["client_key_id"] == "key-1")
+        #expect(try Self.json(outgoing.body)["signature"] == CredentialRedaction.placeholder)
+
+        // And the request on the wire carries the real assertion
+        #expect(try Self.json(urlRequest.httpBody)["signature"] == "assertion")
+    }
+
+    @Test("Response interceptors see the session token redacted while the client decodes the original")
+    func responseInterceptorSeesRedactedSessionToken() async throws {
+        // Given a native login response carrying a session token
+        InterceptorStubProtocol.configure(body: Data(#"{"session_token":"ory_st_real"}"#.utf8))
+        let capture = ResponseCapture()
+        let client = makeClient(response: [capture])
+
+        // When the client receives it
+        let response = try await client.send(NativeLoginRequest())
+
+        // Then the interceptor saw a placeholder and the client decoded the real token
+        #expect(try Self.json(await capture.seenBody)["session_token"] == CredentialRedaction.placeholder)
+        #expect(try response.success().sessionToken == "ory_st_real")
     }
 
     @Test("A response interceptor that throws fails as unexpectedResponse, and the observer sees a receive but no failure")
