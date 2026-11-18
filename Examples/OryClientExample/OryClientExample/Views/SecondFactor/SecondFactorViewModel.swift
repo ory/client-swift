@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import OryClient
+import Ory
 
 /// Drives the step-up screen. It reads how this device is enrolled with `deviceEnrollment()`,
 /// then steps up with `authenticateWithDevice(pin:)` for a PIN key or `authenticateWithDevice()`

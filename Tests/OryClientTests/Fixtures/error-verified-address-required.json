@@ -1,0 +1,21 @@
+{
+  "error": {
+    "id": "session_verified_address_required",
+    "code": 400,
+    "status": "Bad Request",
+    "reason": "Your account's email or phone address are not verified yet. Please check your email or phone inbox or re-request verification.",
+    "message": "your email or phone address is not yet verified",
+    "details": {
+      "continue_with": [
+        {
+          "action": "show_verification_ui",
+          "flow": {
+            "id": "verification-12",
+            "verifiable_address": "alice@example.com",
+            "url": "https://example.com/verification?flow=verification-12"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,8 +1,8 @@
 import CryptoKit
 import Foundation
-import OryClientTestDoubles
+import OryTestDoubles
 import Testing
-@testable import OryClient
+@testable import Ory
 
 @Suite("Device PIN vault")
 struct DevicePINVaultTests {

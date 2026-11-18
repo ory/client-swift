@@ -1,6 +1,6 @@
 #if DEBUG
 import Foundation
-import OryClient
+import Ory
 
 /// Sample domain values for SwiftUI previews.
 nonisolated enum PreviewData {
@@ -38,15 +38,15 @@ nonisolated enum PreviewData {
                 OryNode(
                     id: "identifier",
                     group: .default,
-                    content: .input(OryInputField(name: .identifier, kind: .email, label: "Email", autocomplete: .email))
+                    content: .input(OryInputField(name: .identifier, kind: .email, label: OryUIMessage(id: 1070004, text: "Email", kind: .info), autocomplete: .email))
                 ),
                 OryNode(
                     id: "password",
                     group: .password,
-                    content: .input(OryInputField(name: .password, kind: .password, label: "Password", autocomplete: .currentPassword))
+                    content: .input(OryInputField(name: .password, kind: .password, label: OryUIMessage(id: 1070001, text: "Password", kind: .info), autocomplete: .currentPassword))
                 ),
             ],
-            actions: [OryInputField(name: .method, kind: .submit, label: "Sign in", value: "password")]
+            actions: [OryInputField(name: .method, kind: .submit, label: OryUIMessage(id: 1010001, text: "Sign in", kind: .info), value: "password")]
         )
     }
 }
@@ -74,9 +74,13 @@ struct PreviewOryClient: OryClientProtocol {
     func currentSession() async throws -> OrySession { try currentSessionResult.get() }
     func logout() async throws {}
 
+    func elementsConfiguration() async throws -> OryElementsConfiguration {
+        OryElementsConfiguration(name: "Preview")
+    }
+
     func createLoginFlow(options: OryLoginFlowOptions) async throws -> OryFlow { try makeFlow() }
     func getLoginFlow(id: String) async throws -> OryFlow { try makeFlow() }
-    func submitLoginFlow(_ flow: OryFlow, values: OryFormValues, pressing action: OryInputField) async throws -> OryFlowResult<OryAuthenticatedSession> {
+    func submitLoginFlow(_ flow: OryFlow, values: OryFormValues, pressing action: OryInputField) async throws -> OryFlowResult<OryLoginResult> {
         .pending(self.flow)
     }
 

@@ -48,7 +48,7 @@ A great way to start a conversation is via
 ## FAQ
 
 - I am new to the community. Where can I find the
-  [Ory Community Code of Conduct?](https://github.com/ory/sdk-swift/blob/master/CODE_OF_CONDUCT.md)
+  [Ory Community Code of Conduct?](https://github.com/ory/client-swift/blob/master/CODE_OF_CONDUCT.md)
 
 - I have a question. Where can I get
   [answers to questions regarding Ory Swift SDK?](#communication)
@@ -63,7 +63,7 @@ A great way to start a conversation is via
 - I would like to know what I am agreeing to when I contribute to Ory
   Swift SDK.
   Does Ory have
-  [a Contributors License Agreement?](https://cla-assistant.io/ory/sdk-swift)
+  [a Contributors License Agreement?](https://cla-assistant.io/ory/client-swift)
 
 - I would like updates about new versions of Ory Swift SDK.
   [How are new releases announced?](https://www.ory.com/l/sign-up-newsletter)
@@ -71,7 +71,7 @@ A great way to start a conversation is via
 ## How can I contribute?
 
 The single most useful thing you can do is to
-[open a well-written issue or discussion](https://github.com/ory/sdk-swift/issues):
+[open a well-written issue or discussion](https://github.com/ory/client-swift/issues):
 a clear bug report with a reproducer, or a feature request with concrete use
 cases and examples. This is far more valuable to us than a pull request, and it
 is the first step for any code change.
@@ -177,7 +177,7 @@ request, go through this checklist:
 1. Run `make format`
 1. Add a descriptive prefix to commits. This ensures a uniform commit history
    and helps structure the changelog. Please refer to this
-   [Conventional Commits configuration](https://github.com/ory/sdk-swift/blob/master/.github/workflows/conventional_commits.yml)
+   [Conventional Commits configuration](https://github.com/ory/client-swift/blob/master/.github/workflows/conventional_commits.yml)
    for the list of accepted prefixes. You can read more about the Conventional
    Commit specification
    [at their site](https://www.conventionalcommits.org/en/v1.0.0/).
@@ -186,7 +186,7 @@ If a pull request is not ready to be reviewed yet
 [it should be marked as a "Draft"](https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/changing-the-stage-of-a-pull-request).
 
 Before your contributions can be reviewed you need to sign our
-[Contributor License Agreement](https://cla-assistant.io/ory/sdk-swift).
+[Contributor License Agreement](https://cla-assistant.io/ory/client-swift).
 
 This agreement defines the terms under which your code is contributed to Ory.
 More specifically it declares that you have the right to, and actually do, grant
@@ -207,7 +207,7 @@ Pull requests eligible for review
 4. document the changes in the code and/or the project's documentation;
 5. pass the CI pipeline;
 6. have signed our
-   [Contributor License Agreement](https://cla-assistant.io/ory/sdk-swift);
+   [Contributor License Agreement](https://cla-assistant.io/ory/client-swift);
 7. include a proper git commit message following the
    [Conventional Commit Specification](https://www.conventionalcommits.org/en/v1.0.0/).
 
@@ -266,10 +266,10 @@ Please run `make format` to format all source code following the Ory standard.
 
 ```bash
 # First you clone the original repository
-git clone git@github.com:ory/sdk-swift.git
+git clone git@github.com:ory/client-swift.git
 
 # Next you add a git remote that is your fork:
-git remote add fork git@github.com:<YOUR-GITHUB-USERNAME-HERE>/sdk-swift.git
+git remote add fork git@github.com:<YOUR-GITHUB-USERNAME-HERE>/client-swift.git
 
 # Next you fetch the latest changes from origin for master:
 git fetch origin
@@ -294,7 +294,7 @@ Now go to the project's GitHub Pull Request page and click "New pull request"
 Whether you are a regular contributor or a newcomer, we care about making this
 community a safe place for you and we've got your back.
 
-[Ory Community Code of Conduct](https://github.com/ory/sdk-swift/blob/master/CODE_OF_CONDUCT.md)
+[Ory Community Code of Conduct](https://github.com/ory/client-swift/blob/master/CODE_OF_CONDUCT.md)
 
 We welcome discussion about creating a welcoming, safe, and productive
 environment for the community. If you have any questions, feedback, or concerns

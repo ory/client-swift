@@ -1,5 +1,5 @@
-import OryClient
-import OryClientTestDoubles
+import Ory
+import OryTestDoubles
 import Testing
 @testable import OryClientExample
 
@@ -16,7 +16,7 @@ struct OryClientExampleTests {
         var signedIn: OrySession?
         let stub = OryClientStub(
             createLoginFlowResult: .success(Fixtures.flow(.login)),
-            submitLoginFlowResult: .success(.success(OryAuthenticatedSession(session: Fixtures.session())))
+            submitLoginFlowResult: .success(.success(OryLoginResult(session: Fixtures.session())))
         )
         let viewModel = LoginViewModel(client: stub, onSignedIn: { signedIn = $0 }, onForgotPassword: {}, onDismiss: {})
 
@@ -24,6 +24,29 @@ struct OryClientExampleTests {
         await viewModel.submit(pressing: Fixtures.submitAction)
 
         #expect(signedIn?.id == "session-1")
+    }
+
+    @Test("Login opens verification when the project requires a verified address")
+    func loginOpensVerification() async {
+        var opened: OryVerificationHandle?
+        let handle = OryVerificationHandle(flowID: "verification-1", address: "alice@example.com")
+        let stub = OryClientStub(
+            createLoginFlowResult: .success(Fixtures.flow(.login)),
+            submitLoginFlowResult: .failure(.addressVerificationRequired(handle))
+        )
+        let viewModel = LoginViewModel(
+            client: stub,
+            onSignedIn: { _ in },
+            onVerificationNeeded: { opened = $0 },
+            onForgotPassword: {},
+            onDismiss: {}
+        )
+
+        await viewModel.start()
+        await viewModel.submit(pressing: Fixtures.submitAction)
+
+        #expect(opened == handle)
+        #expect(viewModel.submitError == nil)
     }
 
     @Test("Login surfaces an error message on failure")
@@ -38,6 +61,32 @@ struct OryClientExampleTests {
         await viewModel.submit(pressing: Fixtures.submitAction)
 
         #expect(viewModel.submitError != nil)
+    }
+
+    @Test("Login hides password recovery when the project turns recovery off")
+    func loginHidesRecoveryWhenDisabled() async {
+        let stub = OryClientStub(
+            elementsConfigurationResult: .success(OryElementsConfiguration(name: "Acme", recoveryEnabled: false)),
+            createLoginFlowResult: .success(Fixtures.flow(.login))
+        )
+        let viewModel = LoginViewModel(client: stub, onSignedIn: { _ in }, onForgotPassword: {}, onDismiss: {})
+
+        await viewModel.start()
+
+        #expect(viewModel.showsForgotPassword == false)
+    }
+
+    @Test("Login keeps password recovery when the configuration cannot be loaded")
+    func loginKeepsRecoveryWithoutConfiguration() async {
+        let stub = OryClientStub(
+            elementsConfigurationResult: .failure(.server(status: 404, id: nil, messages: [])),
+            createLoginFlowResult: .success(Fixtures.flow(.login))
+        )
+        let viewModel = LoginViewModel(client: stub, onSignedIn: { _ in }, onForgotPassword: {}, onDismiss: {})
+
+        await viewModel.start()
+
+        #expect(viewModel.showsForgotPassword)
     }
 
     @Test("An expired login continues with the replacement flow")
@@ -255,7 +304,7 @@ private enum Fixtures {
 
     static let errorMessage = OryUIMessage(id: 4_000_006, text: "The credentials are invalid.", kind: .error)
 
-    static let expired: Result<OryFlowResult<OryAuthenticatedSession>, OryClientError> =
+    static let expired: Result<OryFlowResult<OryLoginResult>, OryClientError> =
         .failure(.flowExpired(replacementFlowID: "replacement"))
 
     static func session(id: String = "session-1") -> OrySession {

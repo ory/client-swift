@@ -1,5 +1,5 @@
 import Combine
-import OryClient
+import Ory
 import SwiftUI
 
 nonisolated enum AuthPage: Hashable, Sendable {

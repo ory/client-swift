@@ -1,6 +1,6 @@
 #if DEBUG
 import Foundation
-import OryClient
+import Ory
 
 nonisolated enum DebugHeader {
     static let correlationID = "X-Ory-Debug-Id"

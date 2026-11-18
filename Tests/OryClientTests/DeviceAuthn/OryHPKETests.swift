@@ -1,7 +1,7 @@
 import CryptoKit
 import Foundation
 import Testing
-@testable import OryClient
+@testable import Ory
 
 @Suite("OryHPKE")
 struct OryHPKETests {

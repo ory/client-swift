@@ -1,5 +1,5 @@
 import Foundation
-import OryClient
+import Ory
 
 enum Sample {
 

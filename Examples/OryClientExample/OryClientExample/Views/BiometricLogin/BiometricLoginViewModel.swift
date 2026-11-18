@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import OryClient
+import Ory
 
 /// Drives passwordless sign-in with device biometrics (first factor). One call —
 /// ``OryDeviceLogin/loginWithDevice()`` — prompts Face ID / Touch ID, signs the server

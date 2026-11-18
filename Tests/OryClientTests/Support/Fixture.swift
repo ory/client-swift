@@ -12,15 +12,21 @@ enum Fixture {
 
     static var session: Data { load("session") }
     static var sessionUnknownAAL: Data { load("session-unknown-aal") }
+    static var elementsConfiguration: Data { load("elements-configuration") }
+    static var elementsConfigurationMinimal: Data { load("elements-configuration-minimal") }
     static var successfulLogin: Data { load("successful-login") }
     static var loginFlow: Data { load("login-flow") }
     static var loginFlowDeviceAuthn: Data { load("login-flow-deviceauthn") }
+    static var loginFlowDeviceAuthnFirstFactor: Data { load("login-flow-deviceauthn-first-factor") }
+    static var loginFlowIdentifierFirstCredentials: Data { load("login-flow-identifier-first-credentials") }
     static var settingsFlowDeviceAuthn: Data { load("settings-flow-deviceauthn") }
     static var settingsFlowDeviceAuthnUnknownContinueWith: Data { load("settings-flow-deviceauthn-unknown-continue-with") }
     static var settingsFlowDeviceList: Data { load("settings-flow-device-list") }
     static var loginFlowUnknownValues: Data { load("login-flow-unknown-values") }
     static var loginFlowUnknownNodeType: Data { load("login-flow-unknown-node-type") }
     static var successfulLoginUnknownContinueWith: Data { load("successful-login-unknown-continue-with") }
+    static var successfulLoginVerification: Data { load("successful-login-verification") }
+    static var successfulLoginEnrollment: Data { load("successful-login-enrollment") }
     static var successfulRegistrationUnknownContinueWith: Data { load("successful-registration-unknown-continue-with") }
     static var registrationFlow: Data { load("registration-flow") }
     static var successfulRegistration: Data { load("successful-registration") }
@@ -29,17 +35,21 @@ enum Fixture {
     static var successfulRegistrationNoIdentity: Data { load("successful-registration-no-identity") }
     static var successfulRegistrationVerification: Data { load("successful-registration-verification") }
     static var verificationFlow: Data { load("verification-flow") }
+    static var verificationFlowContinue: Data { load("verification-flow-continue") }
     static var verificationFlowVerified: Data { load("verification-flow-verified") }
     static var recoveryFlow: Data { load("recovery-flow") }
     static var recoveryPassedChallenge: Data { load("recovery-passed-challenge") }
     static var recoveryPassedChallengeUnknownContinueWith: Data { load("recovery-passed-challenge-unknown-continue-with") }
     static var settingsFlow: Data { load("settings-flow") }
+    static var settingsFlowTOTP: Data { load("settings-flow-totp") }
     static var settingsFlowSuccess: Data { load("settings-flow-success") }
     static var settingsFlowValidationAfterSuccess: Data { load("settings-flow-validation-after-success") }
     static var settingsFlowVerification: Data { load("settings-flow-verification") }
     static var settingsPrivilegedError: Data { load("settings-privileged-error") }
     static var errorFlow: Data { load("error-flow") }
     static var errorGeneric: Data { load("error-generic") }
+    static var errorVerifiedAddressRequired: Data { load("error-verified-address-required") }
+    static var errorRecoveryRetry: Data { load("error-recovery-retry") }
     static var errorFlowExpired: Data { load("error-flow-expired") }
 
     // MARK: - Loading

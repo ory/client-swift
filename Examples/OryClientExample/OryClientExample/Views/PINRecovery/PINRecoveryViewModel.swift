@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import OryClient
+import Ory
 
 /// Drives the guided recovery shown after the user signs in another way (e.g. with a password)
 /// while this device's PIN is locked.
@@ -34,11 +34,11 @@ final class PINRecoveryViewModel {
         self.onSkip = onSkip
     }
 
-    /// Validates a chosen PIN against this app's policy before resetting. `OryClient` performs no
-    /// PIN validation — the server never sees the PIN — so this is where the integrating app
-    /// enforces its own rules (see ``PINValidator``). Returns a user-facing error, or `nil`.
+    /// Checks a chosen PIN against the client's `pinPolicy` before resetting, so the screen can
+    /// show the problem without a round trip. `OryClient` checks the same policy again in
+    /// `resetDevicePIN(newPin:)`. Returns a user-facing error, or `nil`.
     func pinValidationError(for pin: String) -> String? {
-        PINValidator(pin: pin).execute().firstErrorMessage
+        client.pinPolicy.violation(for: pin).map { OryClientError.pinPolicyViolation($0).localizedDescription }
     }
 
     func resetPIN(_ newPin: String) async {

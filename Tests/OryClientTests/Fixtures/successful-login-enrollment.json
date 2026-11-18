@@ -1,0 +1,15 @@
+{
+  "session": {
+    "id": "session-11",
+    "active": true,
+    "authenticator_assurance_level": "aal1",
+    "identity": null
+  },
+  "session_token": "ory_st_enroll",
+  "continue_with": [
+    {
+      "action": "show_settings_ui",
+      "flow": { "id": "settings-11", "url": "https://example.com/settings?flow=settings-11" }
+    }
+  ]
+}

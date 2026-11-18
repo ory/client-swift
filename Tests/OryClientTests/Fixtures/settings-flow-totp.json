@@ -1,0 +1,116 @@
+{
+  "id": "settings-totp",
+  "type": "api",
+  "state": "show_form",
+  "expires_at": "2035-01-01T00:00:00Z",
+  "issued_at": "2026-01-01T00:00:00Z",
+  "request_url": "https://example.com/self-service/settings/api",
+  "identity": {
+    "id": "identity-1",
+    "schema_id": "default",
+    "schema_url": "https://example.com/s",
+    "traits": {
+      "email": "user@example.com"
+    }
+  },
+  "ui": {
+    "action": "https://example.com/self-service/settings?flow=settings-totp",
+    "method": "POST",
+    "nodes": [
+      {
+        "type": "input",
+        "group": "default",
+        "messages": [],
+        "meta": {},
+        "attributes": {
+          "node_type": "input",
+          "name": "csrf_token",
+          "type": "hidden",
+          "value": "csrf-set",
+          "disabled": false
+        }
+      },
+      {
+        "type": "img",
+        "group": "totp",
+        "messages": [],
+        "meta": {
+          "label": {
+            "id": 1050005,
+            "text": "Authenticator app QR code",
+            "type": "info"
+          }
+        },
+        "attributes": {
+          "node_type": "img",
+          "id": "totp_qr",
+          "src": "data:image/png;base64,iVBORw0KGgo=",
+          "width": 256,
+          "height": 256
+        }
+      },
+      {
+        "type": "text",
+        "group": "totp",
+        "messages": [],
+        "meta": {
+          "label": {
+            "id": 1050017,
+            "text": "This is your authenticator app secret. Use it if you can not scan the QR code.",
+            "type": "info"
+          }
+        },
+        "attributes": {
+          "node_type": "text",
+          "id": "totp_secret_key",
+          "text": {
+            "id": 1050006,
+            "text": "JBSWY3DPEHPK3PXP",
+            "type": "info",
+            "context": {
+              "secret": "JBSWY3DPEHPK3PXP"
+            }
+          }
+        }
+      },
+      {
+        "type": "input",
+        "group": "totp",
+        "messages": [],
+        "meta": {
+          "label": {
+            "id": 1070006,
+            "text": "Verify code",
+            "type": "info"
+          }
+        },
+        "attributes": {
+          "node_type": "input",
+          "name": "totp_code",
+          "type": "text",
+          "disabled": false,
+          "required": true
+        }
+      },
+      {
+        "type": "input",
+        "group": "totp",
+        "messages": [],
+        "meta": {
+          "label": {
+            "id": 1050001,
+            "text": "Save",
+            "type": "info"
+          }
+        },
+        "attributes": {
+          "node_type": "input",
+          "name": "method",
+          "type": "submit",
+          "value": "totp",
+          "disabled": false
+        }
+      }
+    ]
+  }
+}

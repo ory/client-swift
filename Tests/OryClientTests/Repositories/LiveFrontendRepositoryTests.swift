@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OryClient
+@testable import Ory
 
 @Suite("LiveFrontendRepository")
 struct LiveFrontendRepositoryTests {
@@ -50,6 +50,38 @@ struct LiveFrontendRepositoryTests {
             Issue.record("expected to throw")
         } catch let error as OryClientError {
             #expect(error.isSessionExpired)
+        }
+    }
+
+    @Test("revokeSession maps a 403 without an id to sessionExpired")
+    func revokeSessionUnknownToken() async throws {
+        // Given the body native logout returns for a token the server does not know
+        let body = Data(#"""
+        {"error":{"code":403,"status":"Forbidden","reason":"The provided Ory Session Token could not be found, is invalid, or otherwise malformed.","message":"The requested action was forbidden"}}
+        """#.utf8)
+        let (dataSource, _) = makeDataSource(data: body, status: 403)
+
+        // When / Then
+        do {
+            try await dataSource.revokeSession(sessionToken: "tok")
+            Issue.record("expected to throw")
+        } catch let error as OryClientError {
+            #expect(error.isSessionExpired)
+        }
+    }
+
+    @Test("revokeSession keeps a 403 with an id as a server error")
+    func revokeSessionForbiddenWithID() async throws {
+        let (dataSource, _) = makeDataSource(
+            data: Data(#"{"error":{"id":"some_future_condition","code":403}}"#.utf8),
+            status: 403
+        )
+
+        do {
+            try await dataSource.revokeSession(sessionToken: "tok")
+            Issue.record("expected to throw")
+        } catch let error as OryClientError {
+            #expect(error.serverStatus == 403)
         }
     }
 
@@ -134,11 +166,72 @@ struct LiveFrontendRepositoryTests {
             sessionToken: nil
         )
 
-        guard case let .success(_, token) = outcome else {
+        guard case let .success(_, token, _) = outcome else {
             Issue.record("expected success, got \(outcome)")
             return
         }
         #expect(token == "ory_st_unknown_continue_with")
+    }
+
+    @Test("submitLogin carries the verification the login hooks ask for")
+    func submitLoginVerification() async throws {
+        let (dataSource, _) = makeDataSource(data: Fixture.successfulLoginVerification, status: 200)
+
+        let outcome = try await dataSource.submitLogin(
+            url: URL(string: "https://example.com/self-service/login?flow=x")!,
+            fields: ["method": "password"],
+            sessionToken: nil
+        )
+
+        guard case let .success(_, token, continuation) = outcome else {
+            Issue.record("expected success, got \(outcome)")
+            return
+        }
+        #expect(token == "ory_st_verify")
+        #expect(continuation.verification == OryVerificationHandle(flowID: "verification-10", address: "alice@example.com"))
+        #expect(continuation.settings == nil)
+    }
+
+    @Test("submitLogin carries the settings flow for second-factor enrollment")
+    func submitLoginEnrollment() async throws {
+        // Given a login to a project that requires AAL2 from an identity without a second factor
+        let (dataSource, _) = makeDataSource(data: Fixture.successfulLoginEnrollment, status: 200)
+
+        let outcome = try await dataSource.submitLogin(
+            url: URL(string: "https://example.com/self-service/login?flow=x")!,
+            fields: ["method": "password"],
+            sessionToken: nil
+        )
+
+        guard case let .success(session, token, continuation) = outcome else {
+            Issue.record("expected success, got \(outcome)")
+            return
+        }
+        #expect(token == "ory_st_enroll")
+        #expect(session.identity == nil)
+        #expect(continuation.settings == OrySettingsHandle(flowID: "settings-11"))
+    }
+
+    @Test("submitRecovery renders the replacement flow a retry error points to")
+    func submitRecoveryRetry() async throws {
+        // Given a submission the server rejects with a new recovery flow
+        let network = MockHTTPClient(responses: [
+            (400, Fixture.errorRecoveryRetry),
+            (200, Fixture.recoveryFlow),
+        ])
+        let dataSource = LiveFrontendRepository(gateway: FrontendGateway(client: network))
+
+        // When
+        let outcome = try await dataSource.submitRecovery(url: URL(string: "https://example.com/r")!, fields: [:])
+
+        // Then the replacement flow is fetched and returned to render
+        guard case let .pending(flow) = outcome else {
+            Issue.record("expected pending, got \(outcome)")
+            return
+        }
+        #expect(flow.kind == .recovery)
+        let request = await network.lastRequest
+        #expect(request?.url.absoluteString == "https://example.com/self-service/recovery/flows?id=recovery-2")
     }
 
     @Test("submitRegistration still finds the verification handle past an unknown action")
@@ -166,7 +259,7 @@ struct LiveFrontendRepositoryTests {
 
         let outcome = try await dataSource.submitLogin(url: actionURL, fields: ["method": "password"], sessionToken: nil)
 
-        guard case let .success(session, token) = outcome else {
+        guard case let .success(session, token, _) = outcome else {
             Issue.record("expected success, got \(outcome)")
             return
         }

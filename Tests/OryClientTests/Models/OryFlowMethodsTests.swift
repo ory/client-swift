@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OryClient
+@testable import Ory
 
 @Suite("OryFlow methods")
 struct OryFlowMethodsTests {
@@ -114,7 +114,7 @@ struct OryFlowMethodsTests {
         let qr = try #require(URL(string: "data:image/png;base64,\(png.base64EncodedString())"))
         let flow = OryFlow(id: "f", kind: .settings, nodes: [
             OryNode(id: "totp_qr", group: .totp, content: .image(url: qr)),
-            OryNode(id: "totp_secret_key", group: .totp, content: .text("SECRET")),
+            OryNode(id: "totp_secret_key", group: .totp, content: .text(OryUIMessage(id: 1050006, text: "SECRET", kind: .info))),
         ])
 
         #expect(flow.totpSetup == OryTOTPSetup(qrCodePNG: png, secret: "SECRET"))

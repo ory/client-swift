@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OryClient
+@testable import Ory
 
 @Suite("ErrorMapper.messages")
 struct ErrorMapperTests {

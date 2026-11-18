@@ -1,5 +1,5 @@
 import Testing
-import OryClient
+import Ory
 
 @Suite("OryAuthenticatorAssuranceLevel")
 struct AuthenticatorAssuranceLevelTests {

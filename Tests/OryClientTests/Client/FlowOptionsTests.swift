@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OryClient
+@testable import Ory
 
 @Suite("Create flow options")
 struct FlowOptionsTests {
@@ -74,7 +74,7 @@ private actor RecordingFlows:
         _ flow: OryFlow,
         values: OryFormValues,
         pressing action: OryInputField
-    ) async throws -> OryFlowResult<OryAuthenticatedSession> { .pending(flow) }
+    ) async throws -> OryFlowResult<OryLoginResult> { .pending(flow) }
 
     func submitRegistrationFlow(
         _ flow: OryFlow,

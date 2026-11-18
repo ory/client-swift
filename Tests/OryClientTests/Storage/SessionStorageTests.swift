@@ -1,5 +1,5 @@
 import Testing
-import OryClientTestDoubles
+import OryTestDoubles
 
 @Suite("InMemorySessionStorage")
 struct SessionStorageTests {

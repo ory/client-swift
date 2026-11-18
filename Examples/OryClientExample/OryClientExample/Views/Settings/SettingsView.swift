@@ -1,4 +1,4 @@
-import OryClient
+import Ory
 import SwiftUI
 
 struct SettingsView: View {

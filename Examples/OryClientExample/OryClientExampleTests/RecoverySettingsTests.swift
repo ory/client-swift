@@ -1,5 +1,5 @@
-import OryClient
-import OryClientTestDoubles
+import Ory
+import OryTestDoubles
 import Testing
 @testable import OryClientExample
 

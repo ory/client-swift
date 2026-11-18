@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OryClient
+@testable import Ory
 
 @Suite("FrontendGateway error classification")
 struct FrontendGatewayTests {
@@ -20,6 +20,26 @@ struct FrontendGatewayTests {
         let mapped = error(status: 403, body: genericBody(id: "session_aal2_required"))
 
         #expect(mapped.isSecondFactorRequired)
+    }
+
+    @Test("An unverified address at sign-in carries the verification flow to open")
+    func verifiedAddressRequired() {
+        let mapped = error(status: 403, body: Fixture.errorVerifiedAddressRequired)
+
+        guard case let .addressVerificationRequired(verification) = mapped else {
+            Issue.record("expected addressVerificationRequired, got \(mapped)")
+            return
+        }
+        #expect(verification == OryVerificationHandle(flowID: "verification-12", address: "alice@example.com"))
+    }
+
+    @Test("An unverified address without a verification flow keeps its id")
+    func verifiedAddressRequiredWithoutFlow() {
+        // Given the legacy error, which names no verification flow
+        let mapped = error(status: 400, body: genericBody(id: "session_verified_address_required"))
+
+        #expect(mapped.serverStatus == 400)
+        #expect(mapped.serverID == .sessionVerifiedAddressRequired)
     }
 
     @Test("session_aal2_enrollment_required is not the same as needing a second factor")
@@ -51,12 +71,55 @@ struct FrontendGatewayTests {
         #expect(error(status: 401, body: genericBody(id: "session_inactive")).isSessionExpired)
     }
 
-    @Test("a 401 or 403 this build does not recognize still signs the user out")
-    func unknownAuthError() {
-        // Conservative fallback: an unrecognized authentication failure is treated as a dead
-        // session rather than swallowed.
-        #expect(error(status: 403, body: genericBody(id: "some_future_condition")).isSessionExpired)
+    @Test("a 401 without an id is an expired session")
+    func unauthorizedWithoutID() {
+        // Given the body whoami returns for a missing, invalid, expired or revoked token
+        let body = Data(#"""
+        {"error":{"code":401,"status":"Unauthorized","reason":"No valid session credentials found in the request.","message":"The request could not be authorized"}}
+        """#.utf8)
+
+        // Then
+        #expect(error(status: 401, body: body).isSessionExpired)
         #expect(error(status: 401).isSessionExpired)
+    }
+
+    @Test("a 401 with an id other than session_inactive keeps the id")
+    func unauthorizedWithOtherID() {
+        // Given a 401 that does not mean the session is gone
+        let mapped = error(status: 401, body: genericBody(id: "session_aal_already_fulfilled"))
+
+        // Then
+        #expect(mapped.serverStatus == 401)
+        #expect(mapped.serverID == OryErrorID(rawValue: "session_aal_already_fulfilled"))
+    }
+
+    @Test("a 403 with an id this build does not recognize keeps the id")
+    func forbiddenWithUnknownID() {
+        let mapped = error(status: 403, body: genericBody(id: "some_future_condition"))
+
+        #expect(mapped.serverStatus == 403)
+        #expect(mapped.serverID == OryErrorID(rawValue: "some_future_condition"))
+    }
+
+    @Test("session_credential_required is a server error with its id")
+    func credentialRequired() {
+        let mapped = error(status: 403, body: genericBody(id: "session_credential_required"))
+
+        #expect(mapped.serverStatus == 403)
+        #expect(mapped.serverID == .sessionCredentialRequired)
+    }
+
+    @Test("a 403 without an Ory error body is a server error")
+    func forbiddenWithoutOryBody() {
+        // Given a 403 from a proxy in front of Ory: empty, plain text or an HTML page
+        let bodies = [Data(), Data("invalid request path".utf8), Data("<html><body>Access denied</body></html>".utf8)]
+
+        // Then
+        for body in bodies {
+            let mapped = error(status: 403, body: body)
+            #expect(mapped.serverStatus == 403)
+            #expect(mapped.serverID == nil)
+        }
     }
 
     @Test("410 surfaces the replacement flow the server prepared")

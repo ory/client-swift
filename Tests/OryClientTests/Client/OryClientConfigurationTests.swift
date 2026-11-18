@@ -1,6 +1,6 @@
 import Foundation
-import OryClient
-import OryClientTestDoubles
+import Ory
+import OryTestDoubles
 import Testing
 
 /// Exercises the public configuration surface without `@testable`, so it fails when a
@@ -47,5 +47,27 @@ struct OryClientConfigurationTests {
         // Then
         #expect(await store.stored == nil)
         #expect(await store.clearCallCount == 1)
+    }
+
+    @Test("PIN material is sealed with the Secure Enclave unless a test opts out")
+    func pinSealingDefaultsToSecureEnclave() {
+        let configuration = OryClientConfiguration(projectURL: URL(string: "https://example.com")!)
+
+        #expect(configuration.pinSealingKeyProvider is OrySecureEnclavePINSealingKeyProvider)
+    }
+
+    @Test("usingInsecurePINSealingForTests shares one in-memory provider across configurations")
+    func insecurePINSealingForTests() {
+        // Given two clients of one test, as an E2E suite builds them
+        let base = OryClientConfiguration(projectURL: URL(string: "https://example.com")!)
+
+        // When
+        let first = base.usingInsecurePINSealingForTests().pinSealingKeyProvider
+        let second = base.usingInsecurePINSealingForTests().pinSealingKeyProvider
+
+        // Then both seal with the same in-memory keys, the way they would share the Keychain
+        let firstProvider = first as? InsecureEphemeralPINSealingKeyProvider
+        #expect(firstProvider != nil)
+        #expect(firstProvider === second as? InsecureEphemeralPINSealingKeyProvider)
     }
 }

@@ -1,4 +1,4 @@
-import OryClient
+import Ory
 import SwiftUI
 
 struct DeviceAuthnView: View {
@@ -61,9 +61,8 @@ struct DeviceAuthnView: View {
         }
     }
 
-    /// Enforces the app's PIN policy before handing the PIN to `OryClient`: on failure it shows
+    /// Checks the client's PIN policy before handing the PIN to `OryClient`: on failure it shows
     /// the message inline and keeps the sheet open; on success it dismisses and runs `action`.
-    /// `OryClient` itself accepts any PIN, so this gate is the app's responsibility.
     private func submitPIN(_ pin: String, showing sheet: Binding<Bool>, action: @escaping (String) async -> Void) {
         if let error = viewModel.pinValidationError(for: pin) {
             pinError = error

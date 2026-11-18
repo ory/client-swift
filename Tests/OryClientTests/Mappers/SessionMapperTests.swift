@@ -1,7 +1,7 @@
 import Foundation
 import Testing
-import OrySDK
-@testable import OryClient
+import _OryGeneratedAPI
+@testable import Ory
 
 @Suite("SessionMapper")
 struct SessionMapperTests {

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OryClient
+@testable import Ory
 
 @Suite("LiveDeviceAuthnRepository")
 struct LiveDeviceAuthnRepositoryTests {
@@ -239,7 +239,25 @@ struct LiveDeviceAuthnRepositoryTests {
         #expect(request?.sessionToken == "tok")
     }
 
-    @Test("submitDeviceRemoval maps 403 to sessionExpired")
+    @Test("submitDeviceRemoval maps a 401 to sessionExpired")
+    func removal401() async throws {
+        // Given the body a settings submit returns for a revoked token
+        let body = Data(#"""
+        {"error":{"code":401,"status":"Unauthorized","reason":"A valid Ory Session Cookie or Ory Session Token is missing.","message":"The request could not be authorized"}}
+        """#.utf8)
+        let (repository, _) = makeRepository(data: body, status: 401)
+
+        do {
+            try await repository.submitDeviceRemoval(
+                url: URL(string: "https://example.com/s")!, sessionToken: "tok", clientKeyID: "k"
+            )
+            Issue.record("expected to throw")
+        } catch let error as OryClientError {
+            #expect(error.isSessionExpired)
+        }
+    }
+
+    @Test("submitDeviceRemoval keeps a 403 without an id as a server error")
     func removal403() async throws {
         let (repository, _) = makeRepository(data: Data("{}".utf8), status: 403)
 
@@ -249,7 +267,7 @@ struct LiveDeviceAuthnRepositoryTests {
             )
             Issue.record("expected to throw")
         } catch let error as OryClientError {
-            #expect(error.isSessionExpired)
+            #expect(error.serverStatus == 403)
         }
     }
 }

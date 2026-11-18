@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": 400,
+    "status": "Bad Request",
+    "reason": "The request was already completed successfully and can not be retried.",
+    "message": "The request was malformed or contained invalid parameters",
+    "details": {
+      "continue_with": [
+        { "action": "show_recovery_ui", "flow": { "id": "recovery-2" } }
+      ]
+    }
+  }
+}

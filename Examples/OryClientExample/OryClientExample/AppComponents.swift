@@ -1,6 +1,6 @@
-import OryClient
+import Ory
 #if targetEnvironment(simulator)
-import OryClientSimulator
+import OrySimulator
 #endif
 
 /// The app's composition root: it builds the shared ``OryClient`` once and exposes it as
@@ -45,7 +45,7 @@ enum AppComponents {
 
     /// Owned explicitly so the same store backs the client and any direct access the app needs.
     /// Defaults to the Keychain, so the user stays signed in across launches.
-    static let sessionStorage: OrySessionStorage = OryKeychainSessionStorage()
+    static let sessionStorage: OrySessionStorage = OryKeychainSessionStorage(projectURL: AppConfiguration.projectURL)
 
     /// In debug builds, print every request and response and record transport failures into
     /// the in-app network log. A real app might forward network events to its own observer here.

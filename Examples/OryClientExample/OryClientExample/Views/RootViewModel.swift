@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import OryClient
+import Ory
 
 @MainActor
 @Observable

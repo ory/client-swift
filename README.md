@@ -19,19 +19,38 @@ stay yours.
 For the SwiftUI example and its device-authentication setup, start with
 [Example app](#example-app). The example has a higher iOS deployment target than the package.
 
+## Supported methods
+
+OryClient completes these methods, and each is covered by end-to-end tests against Ory:
+
+| Method | Where |
+| --- | --- |
+| Password | Sign-in, registration, re-authentication, changing the password in settings |
+| One-time code | Passwordless sign-in and registration, verification, recovery |
+| Profile traits | Registration (including two-step registration) and settings |
+| Identifier-first sign-in | Sign-in that asks for the identifier first |
+| Authenticator app (TOTP) | Linking and unlinking in settings, second factor at sign-in |
+| Device authentication | Passwordless sign-in and second factor with a PIN or Face ID / Touch ID, device management |
+
+It does not complete social sign-in (OpenID Connect), SAML, passkeys, security keys (WebAuthn),
+backup codes, captchas, or magic links. When your project enables one of them, its fields and
+buttons still arrive in flows, so hide them (see [Signing in](#signing-in)). Submitting social
+sign-in throws `OryClientError.browserLocationChangeRequired`.
+
 ## Installation
 
 Add the package in Xcode (*File ▸ Add Package Dependencies…*) or in `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/ory/sdk-swift.git", .upToNextMinor(from: "0.2.0"))
+.package(url: "https://github.com/ory/client-swift.git", .upToNextMinor(from: "0.3.0"))
 ```
 
 Until 1.0, a minor release may contain breaking changes, so pin to the minor version:
-`from: "0.2.0"` would also resolve `0.3.0`. In Xcode, set the dependency rule to
+`from: "0.3.0"` would also resolve `0.4.0`. In Xcode, set the dependency rule to
 **Up to Next Minor Version**.
 
-Then add `OryClient` to your target's dependencies.
+Then add the `Ory` product to your target's dependencies. The module is `Ory`; the client type
+is `OryClient`.
 
 Device authentication on a physical iOS device additionally needs **App Attest**, signing
 through a paid Apple Developer Program team, and an App ID registered to that team. Configure
@@ -44,7 +63,7 @@ steps. Sign-in, registration, and verification do not require App Attest.
 Create one client and share it:
 
 ```swift
-import OryClient
+import Ory
 
 let ory = OryClient(configuration: OryClientConfiguration(
     projectURL: URL(string: "https://your-slug.projects.oryapis.com")!
@@ -70,9 +89,10 @@ values[.password] = password
 let action = flow.actions.first { $0.value == "password" }!
 
 switch try await ory.submitLoginFlow(flow, values: values, pressing: action) {
-case .success(let authenticated):
-    // Signed in. The token is already stored.
-    print(authenticated.session.identity?.id ?? "")
+case .success(let result):
+    // Signed in. The token is already stored. `result.verification` and
+    // `result.secondFactorEnrollment` name a step the project asks for next, if any.
+    print(result.session.identity?.id ?? "")
 case .pending(let next):
     // Not done: re-render `next` — it carries the validation messages, or the next step.
     render(next)
@@ -82,16 +102,26 @@ case .pending(let next):
 }
 ```
 
+When the project signs in verified addresses only, a correct password for an unverified address
+throws `OryClientError.addressVerificationRequired` with the verification flow the server already
+started. Open it with `getVerificationFlow(id:)`, then let the user sign in again.
+
 When the project offers several methods — for example a password and a one-time code —
 `flow.availableMethods` lists them. Show one at a time: render every node and action whose group
 is the chosen method or is not in `availableMethods`. The second part keeps shared and
 step-navigation controls, such as the identifier and the Continue button of an identifier-first
 step, which belong to no method.
 
+Hide the methods OryClient does not complete. Device authentication has its own methods, such
+as `loginWithDevice(pin:)`, so its fields do not belong in the form either:
+
 ```swift
-let methods = flow.availableMethods
+let hidden: Set<OryNodeGroup> = [.oidc, .saml, .passkey, .webauthn, .lookupSecret, .captcha, .link, .deviceAuthn]
+let methods = flow.availableMethods.filter { !hidden.contains($0) }
 let chosenMethod = methods.first   // or the one picked in your method picker
-let isShown = { (group: OryNodeGroup) in !methods.contains(group) || group == chosenMethod }
+let isShown = { (group: OryNodeGroup) in
+    !hidden.contains(group) && (!methods.contains(group) || group == chosenMethod)
+}
 let fields = flow.nodes.filter { isShown($0.group) }
 let buttons = flow.actions.filter { isShown($0.group) }
 ```
@@ -147,8 +177,23 @@ can tell you a PIN is wrong**, and it counts failed attempts — after the proje
 locks. Recover with `resetDevicePIN(newPin:)`, which proves the device by its key rather than by
 the old PIN.
 
-`OryClient` does not enforce a PIN policy (length, complexity, obvious sequences). That is your
-app's decision — validate before calling.
+`OryClient` checks every new PIN against a PIN policy before `enrollDevice(name:protection:)`
+and `resetDevicePIN(newPin:)`, and throws `OryClientError.pinPolicyViolation` for a PIN that
+breaks it. The default policy, `OryPINPolicy.default`, accepts 4 to 32 characters and rejects a
+PIN that repeats one character (`1111`) or is a run of consecutive digits (`1234`, `9876`). Pass
+your own policy in `OryClientConfiguration(projectURL:pinPolicy:)`; it replaces the default, so
+call `OryPINPolicy.default` inside it to keep the default rules:
+
+```swift
+let sixDigits = OryPINPolicy { pin in
+    if let violation = OryPINPolicy.default.violation(for: pin) { return violation }
+    guard pin.count >= 6 else { return .tooShort(minimumLength: 6) }
+    return pin.allSatisfy(\.isNumber) ? nil : .custom(message: String(localized: "Use digits only."))
+}
+let ory = OryClient(configuration: OryClientConfiguration(projectURL: projectURL, pinPolicy: sixDigits))
+```
+
+Call `policy.violation(for:)` while the user types to show the problem before calling `OryClient`.
 
 ### Managing devices
 
@@ -196,14 +241,14 @@ Quick Help in Xcode documents every case, including which methods throw it.
 Depend on `OryClientProtocol`, not the concrete client, and inject the shipped stub:
 
 ```swift
-import OryClientTestDoubles
+import OryTestDoubles
 
 let stub = OryClientStub(currentSessionResult: .failure(.sessionExpired))
 let viewModel = ProfileViewModel(ory: stub)
 ```
 
-`OryClientTestDoubles` also ships in-memory replacements for the Keychain-backed storage, so
-tests never touch the real Keychain. On the iOS Simulator, `OryClientSimulator` provides relaxed
+`OryTestDoubles` also ships in-memory replacements for the Keychain-backed storage, so
+tests never touch the real Keychain. On the iOS Simulator, `OrySimulator` provides relaxed
 device attestation so device-authentication flows can be exercised without real hardware — it
 compiles to nothing in device builds. Its `usingLegacyDataTaskTransport()` configuration method
 runs requests through the transport the client uses on iOS 14, whose Simulator no longer runs on
@@ -221,7 +266,7 @@ attestation enabled.** This lets you try device authentication without a paid Ap
 
 | Run destination | Attestation used by the example | Ory requirements for device authentication |
 |-----------------|---------------------------------|--------------------------------------------|
-| iOS Simulator (Debug or Release) | Mock, self-signed attestation from `OryClientSimulator` | Development project with **Allow relaxed attestation for testing** enabled |
+| iOS Simulator (Debug or Release) | Mock, self-signed attestation from `OrySimulator` | Development project with **Allow relaxed attestation for testing** enabled |
 | Physical iPhone (Debug or Release) | Apple App Attest | Device authentication enabled; for relaxed attestation off, use the App Attest `production` environment |
 
 The choice is made by `#if targetEnvironment(simulator)` in

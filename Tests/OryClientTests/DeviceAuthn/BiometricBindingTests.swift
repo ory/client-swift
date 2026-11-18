@@ -1,7 +1,7 @@
 #if canImport(LocalAuthentication)
 import Foundation
 import Testing
-@testable import OryClient
+@testable import Ory
 
 @Suite("OryLocalAuthenticationBiometricAuthenticator.verifyBiometricSet")
 struct BiometricBindingTests {

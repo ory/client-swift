@@ -1,0 +1,55 @@
+{
+  "id": "verification-continue",
+  "type": "api",
+  "state": "passed_challenge",
+  "request_url": "https://example.com/self-service/verification/api",
+  "ui": {
+    "action": "https://example.com/self-service/verification?flow=verification-continue",
+    "method": "POST",
+    "nodes": [
+      {
+        "type": "input",
+        "group": "default",
+        "messages": [],
+        "meta": {},
+        "attributes": {
+          "node_type": "input",
+          "name": "csrf_token",
+          "type": "hidden",
+          "value": "csrf-ver",
+          "disabled": false
+        }
+      },
+      {
+        "type": "a",
+        "group": "code",
+        "messages": [],
+        "meta": {
+          "label": {
+            "id": 1070009,
+            "text": "Continue",
+            "type": "info"
+          }
+        },
+        "attributes": {
+          "node_type": "a",
+          "id": "continue",
+          "href": "https://example.com/welcome",
+          "title": {
+            "id": 1070009,
+            "text": "Continue",
+            "type": "info"
+          }
+        }
+      }
+    ],
+    "messages": [
+      {
+        "id": 1080002,
+        "text": "You successfully verified your email address.",
+        "type": "success"
+      }
+    ]
+  },
+  "active": "code"
+}

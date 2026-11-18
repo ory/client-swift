@@ -1,7 +1,7 @@
 import Foundation
-import OryClientTestDoubles
+import OryTestDoubles
 import Testing
-@testable import OryClient
+@testable import Ory
 
 @Suite("Device operation concurrency")
 struct DeviceOperationConcurrencyTests {
@@ -14,9 +14,9 @@ struct DeviceOperationConcurrencyTests {
         func run(_ client: OryClient) async throws {
             switch self {
             case .enroll: try await client.enrollDevice(name: "iPhone")
-            case .enrollPIN: try await client.enrollDevice(name: "iPhone", protection: .pin("1234"))
+            case .enrollPIN: try await client.enrollDevice(name: "iPhone", protection: .pin("2580"))
             case .enrollBiometric: try await client.enrollDevice(name: "iPhone", protection: .biometrics)
-            case .reset: try await client.resetDevicePIN(newPin: "1234")
+            case .reset: try await client.resetDevicePIN(newPin: "2580")
             case .remove: try await client.removeDevice()
             case .removeListed:
                 try await client.removeDevice(OryEnrolledDevice(
@@ -24,10 +24,10 @@ struct DeviceOperationConcurrencyTests {
                     userVerification: .pin, isLocked: false, isCurrentDevice: true
                 ))
             case .forget: try await client.forgetDevice()
-            case .loginPIN: _ = try await client.loginWithDevice(pin: "1234")
+            case .loginPIN: _ = try await client.loginWithDevice(pin: "2580")
             case .loginBiometric: _ = try await client.loginWithDevice()
             case .stepUp: _ = try await client.authenticateWithDevice()
-            case .stepUpPIN: _ = try await client.authenticateWithDevice(pin: "1234")
+            case .stepUpPIN: _ = try await client.authenticateWithDevice(pin: "2580")
             case .stepUpBiometric: _ = try await client.authenticateWithDevice()
             }
         }
@@ -47,7 +47,7 @@ struct DeviceOperationConcurrencyTests {
 
     private func pinKey() throws -> OryStoredDeviceKey {
         let vault = DevicePINVault(sealingKeyProvider: sealingKeys)
-        let secret = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "1234")
+        let secret = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "2580")
         return OryStoredDeviceKey(clientKeyID: "key", localKeyID: "local", pinSecret: secret, userVerification: .pin, identityID: "identity-1")
     }
 
@@ -59,12 +59,12 @@ struct DeviceOperationConcurrencyTests {
         let store = InMemoryDeviceKeyStore(initial: try pinKey())
         let first = makeClient(store: store, repository: repository)
         let second = makeClient(store: store, repository: repository)
-        let pending = Task { try await first.resetDevicePIN(newPin: "1111") }
+        let pending = Task { try await first.resetDevicePIN(newPin: "1470") }
         await gate.waitUntilHeld()
 
         // When a second rotation would otherwise overtake the first response.
         do {
-            try await second.resetDevicePIN(newPin: "2222")
+            try await second.resetDevicePIN(newPin: "2581")
             Issue.record("An overlapping device operation must be rejected")
         } catch {
             expectInProgress(error)
@@ -75,11 +75,11 @@ struct DeviceOperationConcurrencyTests {
         try await pending.value
 
         // Then the first operation remains usable, and a later rotation can proceed.
-        try await second.resetDevicePIN(newPin: "3333")
+        try await second.resetDevicePIN(newPin: "3692")
         #expect(await repository.submitCallCount == 2)
         let stored = try #require(await store.stored?.pinSecret)
         let vault = DevicePINVault(sealingKeyProvider: sealingKeys)
-        #expect(try vault.unlock(stored, pinString: "3333") == Data(repeating: 7, count: 32))
+        #expect(try vault.unlock(stored, pinString: "3692") == Data(repeating: 7, count: 32))
     }
 
     @Test("An old device removal preserves a replacement local key", arguments: [false, true])
@@ -107,7 +107,7 @@ struct DeviceOperationConcurrencyTests {
         let store = InMemoryDeviceKeyStore(initial: key)
         let first = makeClient(store: store, repository: repository)
         let second = makeClient(store: store, repository: repository)
-        let pending = Task { try await first.resetDevicePIN(newPin: "1111") }
+        let pending = Task { try await first.resetDevicePIN(newPin: "1470") }
         await gate.waitUntilHeld()
 
         // When another operation tries to use or replace that key.
@@ -155,7 +155,7 @@ struct DeviceOperationConcurrencyTests {
         let first = makeClient(store: InMemoryDeviceKeyStore(initial: try pinKey()), repository: repository)
         let otherStore = InMemoryDeviceKeyStore(initial: try pinKey())
         let second = makeClient(store: otherStore, repository: FakeFrontendRepository())
-        let pending = Task { try await first.resetDevicePIN(newPin: "1111") }
+        let pending = Task { try await first.resetDevicePIN(newPin: "1470") }
         await gate.waitUntilHeld()
 
         do {
@@ -177,7 +177,7 @@ struct DeviceOperationConcurrencyTests {
         let store = InMemoryDeviceKeyStore(initial: try pinKey())
         let first = makeClient(store: store, repository: repository)
         let second = makeClient(store: store, repository: repository)
-        let pending = Task { try await first.resetDevicePIN(newPin: "1111") }
+        let pending = Task { try await first.resetDevicePIN(newPin: "1470") }
         await gate.waitUntilHeld()
         if cancelled { pending.cancel() }
         await gate.release()
@@ -223,7 +223,7 @@ struct DeviceOperationConcurrencyTests {
         let store = InMemoryDeviceKeyStore(initial: try pinKey())
         let first = makeClient(store: DefaultScopeStore(base: store), repository: repository)
         let second = makeClient(store: DefaultScopeStore(base: store), repository: repository)
-        let pending = Task { try await first.resetDevicePIN(newPin: "1111") }
+        let pending = Task { try await first.resetDevicePIN(newPin: "1470") }
         await gate.waitUntilHeld()
 
         do {

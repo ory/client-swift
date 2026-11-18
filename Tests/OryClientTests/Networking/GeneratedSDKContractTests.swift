@@ -1,7 +1,7 @@
 import Foundation
-import OrySDK
+import _OryGeneratedAPI
 import Testing
-@testable import OryClient
+@testable import Ory
 
 @Suite("Generated SDK contract")
 struct GeneratedSDKContractTests {

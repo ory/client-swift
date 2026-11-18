@@ -1,6 +1,6 @@
 import Foundation
 import Security
-@testable import OryClient
+@testable import Ory
 
 extension DevicePINVault {
     /// Test convenience: the production API takes the secret and PIN as mutable, zeroized

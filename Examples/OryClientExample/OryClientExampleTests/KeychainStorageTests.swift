@@ -1,5 +1,5 @@
 import Foundation
-import OryClient
+import Ory
 import Security
 import Testing
 
@@ -121,6 +121,56 @@ struct KeychainStorageTests {
         // Clearing one leaves the other intact — signing out must not un-enroll the device.
         try await session.clear()
         #expect(try await device.enrolledKey() != nil)
+    }
+
+    // MARK: - Project scope
+
+    @Test("stores for different projects keep separate tokens and device keys")
+    func projectsDoNotShareItems() async throws {
+        // Given two projects on one host, as a self-hosted deployment may serve them
+        let host = "https://\(UUID().uuidString.lowercased()).example.com"
+        let alpha = URL(string: "\(host)/alpha")!
+        let beta = URL(string: "\(host)/beta")!
+        let alphaSession = OryKeychainSessionStorage(projectURL: alpha)
+        let betaSession = OryKeychainSessionStorage(projectURL: beta)
+        let alphaKeys = OryKeychainDeviceKeyStore(projectURL: alpha)
+        let betaKeys = OryKeychainDeviceKeyStore(projectURL: beta)
+        defer {
+            Task {
+                try? await alphaSession.clear(); try? await betaSession.clear()
+                try? await alphaKeys.clear(); try? await betaKeys.clear()
+            }
+        }
+
+        // When only the first project signs in and enrolls
+        try await alphaSession.store(sessionToken: "ory_st_alpha")
+        try await alphaKeys.store(OryStoredDeviceKey(clientKeyID: "srv-alpha", localKeyID: "apple", userVerification: .pin, identityID: "identity-1"))
+
+        // Then the second project sees neither
+        #expect(try await betaSession.sessionToken() == nil)
+        #expect(try await betaKeys.enrolledKey() == nil)
+
+        // When the second project signs in and its user signs out
+        try await betaSession.store(sessionToken: "ory_st_beta")
+        try await betaSession.clear()
+
+        // Then the first project's token is untouched
+        #expect(try await alphaSession.sessionToken() == "ory_st_alpha")
+        #expect(try await alphaKeys.enrolledKey()?.clientKeyID == "srv-alpha")
+    }
+
+    @Test("a project-scoped store removes the items of the unscoped service")
+    func unscopedItemsAreRemoved() async throws {
+        // Given a session token and a device key stored by a version before project scoping
+        try write(Data("ory_st_unscoped".utf8), service: "com.ory.client", account: "session_token")
+        try write(Data("{}".utf8), service: "com.ory.client", account: "device_key")
+
+        // When a store scoped to a project is created
+        _ = OryKeychainSessionStorage(projectURL: URL(string: "https://\(UUID().uuidString.lowercased()).example.com")!)
+
+        // Then neither item remains
+        #expect(accessibility(service: "com.ory.client", account: "session_token") == nil)
+        #expect(accessibility(service: "com.ory.client", account: "device_key") == nil)
     }
 
     // MARK: - Keychain helpers

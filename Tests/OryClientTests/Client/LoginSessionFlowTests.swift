@@ -1,7 +1,7 @@
 import Foundation
 import Testing
-import OryClientTestDoubles
-@testable import OryClient
+import OryTestDoubles
+@testable import Ory
 
 @Suite("Re-authentication and second-factor login flows")
 struct LoginSessionFlowTests {

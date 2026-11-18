@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import OryClient
+import Ory
 
 /// Drives the account-recovery flow (recover access by email).
 ///

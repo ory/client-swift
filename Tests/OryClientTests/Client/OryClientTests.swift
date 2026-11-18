@@ -1,7 +1,7 @@
 import Foundation
 import Testing
-import OryClientTestDoubles
-@testable import OryClient
+import OryTestDoubles
+@testable import Ory
 
 @Suite("OryClient")
 struct OryClientTests {
@@ -57,6 +57,27 @@ struct OryClientTests {
         // And the rejected token is not kept at rest: the user is signed out, and the next
         // call says so instead of reporting an expired session forever.
         #expect(try await storage.sessionToken() == nil)
+    }
+
+    @Test("currentSession keeps the token when the server error is not an expired session")
+    func currentSessionForbiddenKeepsToken() async throws {
+        // Given a 403 that does not say the session is gone
+        let storage = InMemorySessionStorage(initialToken: "ory_st_live")
+        let frontend = FakeFrontendRepository(
+            currentSession: .failure(.server(status: 403, id: .sessionCredentialRequired, messages: []))
+        )
+        let client = OryClient(storage: storage, frontend: frontend, deviceAuthn: frontend)
+
+        // When
+        do {
+            _ = try await client.currentSession()
+            Issue.record("expected currentSession to throw")
+        } catch let error as OryClientError {
+            #expect(error.serverStatus == 403)
+        }
+
+        // Then
+        #expect(try await storage.sessionToken() == "ory_st_live")
     }
 
     @Test("a second-factor demand keeps the token — it is still valid")
@@ -146,6 +167,32 @@ struct OryClientTests {
         #expect(authenticated.session.id == "session-1")
         let stored = try await storage.sessionToken()
         #expect(stored == "ory_st_new")
+    }
+
+    @Test("submitLoginFlow returns the next steps the server names after sign-in")
+    func submitReturnsContinuation() async throws {
+        // Given a sign-in that needs address verification and second-factor enrollment next
+        let storage = InMemorySessionStorage()
+        let continuation = FlowContinuation(
+            verification: OryVerificationHandle(flowID: "verification-1", address: "alice@example.com"),
+            settings: OrySettingsHandle(flowID: "settings-1")
+        )
+        let frontend = FakeFrontendRepository(
+            submitLogin: .success(.success(session: Sample.session(), token: "ory_st_new", continuation: continuation))
+        )
+        let client = OryClient(storage: storage, frontend: frontend, deviceAuthn: frontend)
+
+        // When
+        let result = try await client.submitLoginFlow(Sample.loginFlow(), values: OryFormValues(), pressing: Sample.submitAction())
+
+        // Then
+        guard case let .success(login) = result else {
+            Issue.record("expected success, got \(result)")
+            return
+        }
+        #expect(login.verification == OryVerificationHandle(flowID: "verification-1", address: "alice@example.com"))
+        #expect(login.secondFactorEnrollment == OrySettingsHandle(flowID: "settings-1"))
+        #expect(try await storage.sessionToken() == "ory_st_new")
     }
 
     @Test("submitLoginFlow pending returns the next flow and stores nothing")

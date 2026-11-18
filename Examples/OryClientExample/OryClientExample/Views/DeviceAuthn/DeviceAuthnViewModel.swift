@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import OryClient
+import Ory
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -110,12 +110,12 @@ final class DeviceAuthnViewModel {
         }
     }
 
-    /// Validates a chosen PIN against this app's policy before enrolling or resetting.
-    /// `OryClient` performs no PIN validation — the server never sees the PIN — so this is where
-    /// the integrating app enforces its own rules (see ``PINValidator``). Returns a user-facing
+    /// Checks a chosen PIN against the client's `pinPolicy` before enrolling or resetting, so the
+    /// sheet can show the problem and stay open. `OryClient` checks the same policy again and
+    /// throws `OryClientError.pinPolicyViolation` for a PIN that breaks it. Returns a user-facing
     /// error message, or `nil` when the PIN is acceptable.
     func pinValidationError(for pin: String) -> String? {
-        PINValidator(pin: pin).execute().firstErrorMessage
+        client.pinPolicy.violation(for: pin).map { OryClientError.pinPolicyViolation($0).localizedDescription }
     }
 
     func enroll() async {

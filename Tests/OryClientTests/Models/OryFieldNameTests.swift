@@ -1,5 +1,5 @@
 import Testing
-import OryClient
+import Ory
 
 @Suite("OryFieldName")
 struct OryFieldNameTests {
@@ -8,7 +8,7 @@ struct OryFieldNameTests {
     func wireNames() {
         #expect(OryFieldName.password.rawValue == "password")
         #expect(OryFieldName.totpCode.rawValue == "totp_code")
-        #expect(OryFieldName.lookupSecret.rawValue == "lookup_secret")
+        #expect(OryFieldName.code.rawValue == "code")
         #expect(OryFieldName.csrfToken.rawValue == "csrf_token")
     }
 

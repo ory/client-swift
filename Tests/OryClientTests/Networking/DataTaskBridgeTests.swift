@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OryClient
+@testable import Ory
 
 /// Covers the transport used below iOS 15, which no test destination runs, by calling it
 /// directly. Serialized because the stub's response is process-wide state. The stub's

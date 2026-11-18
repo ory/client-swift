@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import OryClient
+import Ory
 
 @MainActor
 @Observable
@@ -15,27 +15,33 @@ final class LoginViewModel {
     private(set) var state: State = .loading
     private(set) var isSubmitting = false
     private(set) var submitError: String?
+    private(set) var offersPasswordRecovery = true
     var values = OryFormValues()
 
     private let client: OryClientProtocol
     private let options: OryLoginFlowOptions
     private let onSignedIn: (OrySession) -> Void
+    private let onVerificationNeeded: ((OryVerificationHandle) -> Void)?
     private let onForgotPassword: () -> Void
     private let onDismiss: () -> Void
 
     /// `options` selects the kind of login: the default signs a user in, while
     /// `OryLoginFlowOptions(refresh: true)` re-authenticates and `OryLoginFlowOptions(aal: .aal2)`
     /// asks for a second factor — both for the user who is already signed in.
+    /// `onVerificationNeeded` opens address verification when the project refuses to sign in an
+    /// unverified address.
     init(
         client: OryClientProtocol,
         options: OryLoginFlowOptions = OryLoginFlowOptions(),
         onSignedIn: @escaping (OrySession) -> Void,
+        onVerificationNeeded: ((OryVerificationHandle) -> Void)? = nil,
         onForgotPassword: @escaping () -> Void,
         onDismiss: @escaping () -> Void
     ) {
         self.client = client
         self.options = options
         self.onSignedIn = onSignedIn
+        self.onVerificationNeeded = onVerificationNeeded
         self.onForgotPassword = onForgotPassword
         self.onDismiss = onDismiss
     }
@@ -43,8 +49,14 @@ final class LoginViewModel {
     func start() async {
         state = .loading
         submitError = nil
+        // The project's settings can change at any time, so they are loaded with every flow.
+        // A self-hosted Kratos has no Ory Elements configuration, so the screen keeps its
+        // defaults when the configuration cannot be loaded.
+        async let configuration = try? client.elementsConfiguration()
         do {
-            apply(try await client.createLoginFlow(options: options))
+            let flow = try await client.createLoginFlow(options: options)
+            offersPasswordRecovery = await configuration?.recoveryEnabled ?? true
+            apply(flow)
         } catch {
             state = .failed(error.localizedDescription)
         }
@@ -59,14 +71,20 @@ final class LoginViewModel {
             // "Resend code" asks for a new code, so it is sent without the code the user typed.
             let submitted = action == flow.resendCodeAction ? flow.makeValues() : values
             switch try await client.submitLoginFlow(flow, values: submitted, pressing: action) {
-            case let .success(authenticated):
-                onSignedIn(authenticated.session)
+            case let .success(result):
+                // `result.verification` and `result.secondFactorEnrollment` name a next screen when
+                // the project's login hooks ask for one. This example goes straight to the app.
+                onSignedIn(result.session)
             case let .pending(nextFlow):
                 apply(nextFlow)
             @unknown default:
                 // A result added in a later OryClient release that this app does not handle yet.
                 submitError = "This step isn't supported in this version of the app."
             }
+        } catch let OryClientError.addressVerificationRequired(verification) where onVerificationNeeded != nil {
+            // The password was right, but the project signs in verified addresses only. The
+            // server already sent a code; verify, then sign in again.
+            onVerificationNeeded?(verification)
         } catch OryClientError.flowExpired(let replacementFlowID) {
             // The user took too long. Continue with the flow the server prepared — it explains
             // what happened — or start a new one when it named none.
@@ -93,6 +111,11 @@ final class LoginViewModel {
     /// someone in, so the screen is titled differently and offers no password recovery.
     var confirmsSignedInUser: Bool {
         options.refresh || options.aal == .aal2
+    }
+
+    /// "Forgot password?" shows only when the project allows recovery.
+    var showsForgotPassword: Bool {
+        !confirmsSignedInUser && offersPasswordRecovery
     }
 
     func forgotPassword() {

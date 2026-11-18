@@ -1,6 +1,6 @@
 import Foundation
-import OryClient
-import OryClientTestDoubles
+import Ory
+import OryTestDoubles
 import Testing
 @testable import OryClientExample
 
@@ -13,9 +13,8 @@ struct DeviceAuthnOperationTests {
         let client = OryClient(configuration: OryClientConfiguration(
             projectURL: URL(string: "https://example.invalid")!,
             sessionStorage: InMemorySessionStorage(),
-            deviceKeyStore: store,
-            pinSealingKeyProvider: InsecureEphemeralPINSealingKeyProvider()
-        ))
+            deviceKeyStore: store
+        ).usingInsecurePINSealingForTests())
         let viewModel = DeviceAuthnViewModel(client: client, session: Self.session, onSessionChanged: { _ in })
         await viewModel.load()
         #expect(viewModel.isEnrolled)

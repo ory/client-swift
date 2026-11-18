@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import OryClient
+import Ory
 
 /// Drives passwordless sign-in with the device PIN (first factor). One call —
 /// ``OryDeviceLogin/loginWithDevice(pin:)`` — unlocks the device secret with the PIN,

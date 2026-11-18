@@ -1,0 +1,20 @@
+{
+  "name": "Acme",
+  "logo_light_url": "",
+  "logo_dark_url": "",
+  "registration_enabled": true,
+  "hide_registration_link": false,
+  "verification_enabled": true,
+  "recovery_enabled": true,
+  "login_ui_url": "",
+  "registration_ui_url": "",
+  "recovery_ui_url": "",
+  "verification_ui_url": "",
+  "settings_ui_url": "",
+  "error_ui_url": "",
+  "default_redirect_url": "",
+  "hide_ory_branding": false,
+  "terms_of_service_url": "",
+  "privacy_policy_url": "",
+  "contact_url": ""
+}

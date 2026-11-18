@@ -1,0 +1,20 @@
+{
+  "session": {
+    "id": "session-10",
+    "active": true,
+    "authenticator_assurance_level": "aal1",
+    "identity": {
+      "id": "identity-10",
+      "schema_id": "default",
+      "schema_url": "https://example.com/s",
+      "traits": {}
+    }
+  },
+  "session_token": "ory_st_verify",
+  "continue_with": [
+    {
+      "action": "show_verification_ui",
+      "flow": { "id": "verification-10", "verifiable_address": "alice@example.com", "url": "" }
+    }
+  ]
+}

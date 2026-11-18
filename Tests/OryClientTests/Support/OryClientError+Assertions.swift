@@ -1,9 +1,10 @@
-@testable import OryClient
+@testable import Ory
 
 extension OryClientError {
     var isNotAuthenticated: Bool { if case .notAuthenticated = self { true } else { false } }
     var isSessionExpired: Bool { if case .sessionExpired = self { true } else { false } }
     var serverStatus: Int? { if case let .server(status, _, _) = self { status } else { nil } }
+    var serverID: OryErrorID? { if case let .server(_, id, _) = self { id } else { nil } }
     var isDeviceAuthenticationUnavailable: Bool { if case .deviceAuthenticationUnavailable = self { true } else { false } }
     var isDeviceAuthenticationNotEnrolled: Bool { if case .deviceAuthenticationNotEnrolled = self { true } else { false } }
     var isDeviceAuthenticationInvalidPIN: Bool { if case .deviceAuthenticationInvalidPIN = self { true } else { false } }

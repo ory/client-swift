@@ -1,8 +1,8 @@
 import CryptoKit
 import Foundation
 import Testing
-import OryClientTestDoubles
-@testable import OryClient
+import OryTestDoubles
+@testable import Ory
 
 @Suite("OryClient device authn")
 struct OryClientDeviceAuthnTests {
@@ -29,7 +29,8 @@ struct OryClientDeviceAuthnTests {
         authenticator: any OryDeviceKeyAuthenticator = FakeDeviceKeyAuthenticator(),
         biometric: any OryBiometricAuthenticator = FakeBiometricAuthenticator(),
         signInReason: String = OryClientConfiguration.defaultBiometricSignInReason,
-        enrollReason: String = OryClientConfiguration.defaultBiometricEnrollReason
+        enrollReason: String = OryClientConfiguration.defaultBiometricEnrollReason,
+        pinPolicy: OryPINPolicy = .default
     ) -> (OryClient, InMemorySessionStorage, InMemoryDeviceKeyStore) {
         let storage = token.map { InMemorySessionStorage(initialToken: $0) } ?? InMemorySessionStorage()
         let client = OryClient(
@@ -41,6 +42,7 @@ struct OryClientDeviceAuthnTests {
             biometricAuthenticator: biometric,
             biometricSignInReason: signInReason,
             biometricEnrollReason: enrollReason,
+            pinPolicy: pinPolicy,
             pinSealingKeyProvider: sealingKeys
         )
         return (client, storage, keyStore)
@@ -72,7 +74,7 @@ struct OryClientDeviceAuthnTests {
         // When this enrollment returns after another device has also enrolled.
         switch verification {
         case .none: try await client.enrollDevice(name: "Same device name")
-        case .pin: try await client.enrollDevice(name: "Same device name", protection: .pin("1234"))
+        case .pin: try await client.enrollDevice(name: "Same device name", protection: .pin("2580"))
         case .platform: try await client.enrollDevice(name: "Same device name", protection: .biometrics)
         }
 
@@ -82,7 +84,7 @@ struct OryClientDeviceAuthnTests {
         #expect(stored.localKeyID == "apple-key")
         #expect(stored.userVerification == verification)
         if verification == .pin {
-            #expect(try vault.unlock(#require(stored.pinSecret), pinString: "1234") == Data(repeating: 9, count: 32))
+            #expect(try vault.unlock(#require(stored.pinSecret), pinString: "2580") == Data(repeating: 9, count: 32))
         }
     }
 
@@ -101,7 +103,7 @@ struct OryClientDeviceAuthnTests {
         do {
             switch verification {
             case .none: try await client.enrollDevice(name: "iPhone")
-            case .pin: try await client.enrollDevice(name: "iPhone", protection: .pin("1234"))
+            case .pin: try await client.enrollDevice(name: "iPhone", protection: .pin("2580"))
             case .platform: try await client.enrollDevice(name: "iPhone", protection: .biometrics)
             }
             Issue.record("Malformed attestation must stop enrollment")
@@ -135,7 +137,7 @@ struct OryClientDeviceAuthnTests {
         do {
             switch verification {
             case .none: try await client.enrollDevice(name: "iPhone")
-            case .pin: try await client.enrollDevice(name: "iPhone", protection: .pin("1234"))
+            case .pin: try await client.enrollDevice(name: "iPhone", protection: .pin("2580"))
             case .platform: try await client.enrollDevice(name: "iPhone", protection: .biometrics)
             }
             Issue.record("Enrollment must reject a response without the attested key")
@@ -188,7 +190,7 @@ struct OryClientDeviceAuthnTests {
         let authenticator = RecordingDeviceKeyAuthenticator()
         let (client, _, _) = makeClient(frontend: frontend, authenticator: authenticator)
 
-        try await client.enrollDevice(name: "iPhone", protection: .pin("1234"))
+        try await client.enrollDevice(name: "iPhone", protection: .pin("2580"))
 
         // The server derives the attestation challenge as SHA256(nonce ‖ transport_public_key)
         // for PIN keys; the client must attest over exactly that, never the bare nonce.
@@ -306,7 +308,7 @@ struct OryClientDeviceAuthnTests {
 
     @Test("authenticateWithDevice on a PIN key needing AAL2 throws pinRequired")
     func stepUpPINKeyNeedsPIN() async throws {
-        let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "1234")
+        let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "2580")
         let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(currentSession: .failure(.secondFactorRequired))
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore)
@@ -325,7 +327,7 @@ struct OryClientDeviceAuthnTests {
     @Test("authenticateWithDevice(pin:) steps up with the device signature and pin_proof")
     func stepUpWithPINSubmitsProof() async throws {
         let secret = Data(repeating: 5, count: 32)
-        let protected = try vault.protect(pinSecret: secret, pinString: "1234")
+        let protected = try vault.protect(pinSecret: secret, pinString: "2580")
         let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(
             currentSession: .failure(.secondFactorRequired),
@@ -334,7 +336,7 @@ struct OryClientDeviceAuthnTests {
         )
         let (client, storage, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
-        let authenticated = try await client.authenticateWithDevice(pin: "1234")
+        let authenticated = try await client.authenticateWithDevice(pin: "2580")
 
         #expect(authenticated.session.authenticatorAssuranceLevel == .aal2)
         #expect(try await storage.sessionToken() == "ory_st_aal2")
@@ -349,7 +351,7 @@ struct OryClientDeviceAuthnTests {
         // wrong-but-well-formed pin_proof, and only the server — which counts the attempt
         // toward pin_max_attempts — rejects it.
         let secret = Data(repeating: 1, count: 32)
-        let protected = try vault.protect(pinSecret: secret, pinString: "1234")
+        let protected = try vault.protect(pinSecret: secret, pinString: "2580")
         let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(
             currentSession: .failure(.secondFactorRequired),
@@ -409,7 +411,7 @@ struct OryClientDeviceAuthnTests {
         )
         let (client, storage, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
-        let authenticated = try await client.authenticateWithDevice(pin: "1234")
+        let authenticated = try await client.authenticateWithDevice(pin: "2580")
 
         #expect(authenticated.session.authenticatorAssuranceLevel == .aal2)
         #expect(try await storage.sessionToken() == "ory_st_aal2")
@@ -459,19 +461,19 @@ struct OryClientDeviceAuthnTests {
         let (client, _, keyStore) = makeClient(frontend: frontend)
 
         // When
-        try await client.enrollDevice(name: "iPhone", protection: .pin("1234"))
+        try await client.enrollDevice(name: "iPhone", protection: .pin("2580"))
 
         // Then the PIN key is stored and the secret round-trips back through the PIN
         let stored = try #require(await keyStore.stored)
         #expect(stored.clientKeyID == Fixture.attestedClientKeyID)
         let protected = try #require(stored.pinSecret)
-        #expect(try vault.unlock(protected, pinString: "1234") == sealedSecret)
+        #expect(try vault.unlock(protected, pinString: "2580") == sealedSecret)
     }
 
     @Test("loginWithDevice(pin:) unlocks, signs, and submits the correct pin_proof")
     func loginWithPINSubmitsProof() async throws {
         let secret = Data(repeating: 5, count: 32)
-        let protected = try vault.protect(pinSecret: secret, pinString: "1234")
+        let protected = try vault.protect(pinSecret: secret, pinString: "2580")
         let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(
             loginChallenge: .success(.fake()),
@@ -479,7 +481,7 @@ struct OryClientDeviceAuthnTests {
         )
         let (client, storage, _) = makeClient(token: nil, frontend: frontend, keyStore: keyStore)
 
-        _ = try await client.loginWithDevice(pin: "1234")
+        _ = try await client.loginWithDevice(pin: "2580")
 
         #expect(await frontend.submittedClientKeyID == "srv")
         #expect(try await storage.sessionToken() == "ory_st_pin")
@@ -493,7 +495,7 @@ struct OryClientDeviceAuthnTests {
         // The wrong PIN yields a wrong-but-well-formed proof that is submitted, so the
         // server's pin_max_attempts counter advances; the client never judges the PIN.
         let secret = Data(repeating: 1, count: 32)
-        let protected = try vault.protect(pinSecret: secret, pinString: "1234")
+        let protected = try vault.protect(pinSecret: secret, pinString: "2580")
         let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let frontend = FakeFrontendRepository(
             loginChallenge: .success(.fake()),
@@ -517,7 +519,7 @@ struct OryClientDeviceAuthnTests {
 
     @Test("forgetDevice deletes the sealing key behind stored PIN material")
     func forgetDeletesSealingKey() async throws {
-        let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "1234")
+        let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "2580")
         let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: protected, userVerification: .pin, identityID: "identity-1"))
         let (client, _, _) = makeClient(keyStore: keyStore)
 
@@ -536,18 +538,18 @@ struct OryClientDeviceAuthnTests {
         let frontend = FakeFrontendRepository(pinSecretToSeal: Data(repeating: 9, count: 32), pinClientKeyID: Fixture.attestedClientKeyID)
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
-        try await client.enrollDevice(name: "iPhone", protection: .pin("1234"))
+        try await client.enrollDevice(name: "iPhone", protection: .pin("2580"))
 
         let stored = try #require(await keyStore.stored)
         #expect(stored.clientKeyID == Fixture.attestedClientKeyID)
         #expect(sealingKeys.deletedTags == [oldProtected.sealingKeyTag])
         // The new material's sealing key is the one that remains usable.
-        #expect(try vault.unlock(#require(stored.pinSecret), pinString: "1234") == Data(repeating: 9, count: 32))
+        #expect(try vault.unlock(#require(stored.pinSecret), pinString: "2580") == Data(repeating: 9, count: 32))
     }
 
     @Test("deviceEnrollment reports PIN only for a key that carries PIN material")
     func deviceEnrollmentReflectsPINKey() async throws {
-        let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "1234")
+        let protected = try vault.protect(pinSecret: Data(repeating: 1, count: 32), pinString: "2580")
         let (pinKey, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", pinSecret: protected, userVerification: .pin, identityID: "identity-1")))
         let (plainKey, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "k", localKeyID: "l", userVerification: .none, identityID: "identity-1")))
         let (noKey, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: nil))
@@ -557,7 +559,7 @@ struct OryClientDeviceAuthnTests {
         #expect(try await noKey.deviceEnrollment() != .enrolled(.pin))
     }
 
-    @Test("loginWithDevice throws notEnrolled for a possession-only key", arguments: [nil, "1234"] as [String?])
+    @Test("loginWithDevice throws notEnrolled for a possession-only key", arguments: [nil, "2580"] as [String?])
     func loginWithPossessionOnlyKey(pin: String?) async throws {
         let keyStore = InMemoryDeviceKeyStore(initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", userVerification: .none, identityID: "identity-1"))
         let frontend = FakeFrontendRepository()
@@ -591,7 +593,7 @@ struct OryClientDeviceAuthnTests {
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
         do {
-            try await client.resetDevicePIN(newPin: "5678")
+            try await client.resetDevicePIN(newPin: "7531")
             Issue.record("expected resetDevicePIN to throw")
         } catch let error as OryClientError {
             #expect(error.isSecondFactorRequired)
@@ -601,6 +603,60 @@ struct OryClientDeviceAuthnTests {
         // And the stored secret still opens with the old PIN.
         let protected = try #require(await keyStore.stored?.pinSecret)
         #expect(try vault.unlock(protected, pinString: "0000") == Data(repeating: 1, count: 32))
+    }
+
+    // MARK: - PIN policy
+
+    @Test("enrollDevice rejects a PIN that breaks the default policy before any request", arguments: [
+        ("", OryPINPolicy.Violation.tooShort(minimumLength: 4)),
+        ("1111", .repeatedCharacter),
+        ("1234", .sequentialDigits),
+    ])
+    func enrollRejectsWeakPIN(pin: String, violation: OryPINPolicy.Violation) async throws {
+        // Given
+        let frontend = FakeFrontendRepository(pinSecretToSeal: Data(repeating: 9, count: 32), pinClientKeyID: Fixture.attestedClientKeyID)
+        let (client, _, keyStore) = makeClient(frontend: frontend)
+
+        // When / Then
+        await #expect(throws: OryClientError.pinPolicyViolation(violation)) {
+            try await client.enrollDevice(name: "iPhone", protection: .pin(pin))
+        }
+        #expect(await frontend.receivedSessionToken == nil)
+        #expect(await keyStore.stored == nil)
+    }
+
+    @Test("enrollDevice enrolls a PIN the integrator's own policy accepts")
+    func enrollFollowsCustomPolicy() async throws {
+        // Given
+        let frontend = FakeFrontendRepository(pinSecretToSeal: Data(repeating: 9, count: 32), pinClientKeyID: Fixture.attestedClientKeyID)
+        let (client, _, keyStore) = makeClient(frontend: frontend, pinPolicy: OryPINPolicy { _ in nil })
+
+        // When
+        try await client.enrollDevice(name: "iPhone", protection: .pin("1111"))
+
+        // Then
+        #expect(await keyStore.stored?.userVerification == .pin)
+    }
+
+    @Test("resetDevicePIN rejects a new PIN that breaks the policy and keeps the old one")
+    func resetRejectsWeakPIN() async throws {
+        // Given
+        let oldSecret = Data(repeating: 1, count: 32)
+        let oldProtected = try vault.protect(pinSecret: oldSecret, pinString: "2580")
+        let keyStore = InMemoryDeviceKeyStore(
+            initial: OryStoredDeviceKey(clientKeyID: "srv", localKeyID: "apple", pinSecret: oldProtected, userVerification: .pin, identityID: "identity-1")
+        )
+        let frontend = FakeFrontendRepository(rotatedPINSecretToSeal: Data(repeating: 7, count: 32))
+        let tooShort = OryPINPolicy { $0.count < 6 ? .tooShort(minimumLength: 6) : nil }
+        let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore, pinPolicy: tooShort)
+
+        // When / Then
+        await #expect(throws: OryClientError.pinPolicyViolation(.tooShort(minimumLength: 6))) {
+            try await client.resetDevicePIN(newPin: "7531")
+        }
+        #expect(await frontend.submitCallCount == 0)
+        let protected = try #require(await keyStore.stored?.pinSecret)
+        #expect(try vault.unlock(protected, pinString: "2580") == oldSecret)
     }
 
     @Test("resetDevicePIN rotates with one submit and no step-up login flow")
@@ -619,11 +675,11 @@ struct OryClientDeviceAuthnTests {
         )
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
-        try await client.resetDevicePIN(newPin: "5678")
+        try await client.resetDevicePIN(newPin: "7531")
 
         #expect(await frontend.submitCallCount == 1)
         let protected = try #require(await keyStore.stored?.pinSecret)
-        #expect(try vault.unlock(protected, pinString: "5678") == freshSecret)
+        #expect(try vault.unlock(protected, pinString: "7531") == freshSecret)
     }
 
     @Test("resetDevicePIN signs the raw nonce ‖ transport key, not a hash")
@@ -643,7 +699,7 @@ struct OryClientDeviceAuthnTests {
         let authenticator = RecordingDeviceKeyAuthenticator()
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore, authenticator: authenticator)
 
-        try await client.resetDevicePIN(newPin: "5678")
+        try await client.resetDevicePIN(newPin: "7531")
 
         // The rotation assertion covers nonce ‖ transport_public_key as a raw concatenation —
         // the backend hashes it itself, so the client must not.
@@ -662,7 +718,7 @@ struct OryClientDeviceAuthnTests {
         let (client, _, _) = makeClient(frontend: frontend, keyStore: keyStore)
 
         do {
-            try await client.resetDevicePIN(newPin: "5678")
+            try await client.resetDevicePIN(newPin: "7531")
             Issue.record("expected resetDevicePIN to throw")
         } catch let error as OryClientError {
             #expect(error.isDeviceAuthenticationNotEnrolled)
@@ -675,7 +731,7 @@ struct OryClientDeviceAuthnTests {
         let (client, _, _) = makeClient(keyStore: InMemoryDeviceKeyStore(initial: nil))
 
         do {
-            try await client.resetDevicePIN(newPin: "5678")
+            try await client.resetDevicePIN(newPin: "7531")
             Issue.record("expected resetDevicePIN to throw")
         } catch let error as OryClientError {
             #expect(error.isDeviceAuthenticationNotEnrolled)
@@ -695,7 +751,7 @@ struct OryClientDeviceAuthnTests {
         let (client, _, _) = makeClient(token: nil, keyStore: keyStore)
 
         do {
-            try await client.resetDevicePIN(newPin: "5678")
+            try await client.resetDevicePIN(newPin: "7531")
             Issue.record("expected resetDevicePIN to throw")
         } catch let error as OryClientError {
             #expect(error.isNotAuthenticated)
@@ -893,7 +949,7 @@ struct OryClientDeviceAuthnTests {
         let biometric = FakeBiometricAuthenticator()
         let (client, storage, _) = makeClient(token: nil, frontend: frontend, keyStore: keyStore, biometric: biometric)
 
-        _ = try await client.loginWithDevice(pin: "1234")
+        _ = try await client.loginWithDevice(pin: "2580")
 
         #expect(try await storage.sessionToken() == "ory_st_bio")
         #expect(await frontend.firstFactorHadPINProof == false)
@@ -1067,9 +1123,9 @@ struct OryClientDeviceAuthnTests {
         // Enroll a PIN key so the store holds real sealed material.
         let biometric = FakeBiometricAuthenticator()
         let (client, _, _) = makeClient(frontend: frontend, biometric: biometric)
-        try await client.enrollDevice(name: "iPhone", protection: .pin("1234"))
+        try await client.enrollDevice(name: "iPhone", protection: .pin("2580"))
 
-        _ = try await client.loginWithDevice(pin: "1234")
+        _ = try await client.loginWithDevice(pin: "2580")
 
         // A PIN key is not biometric-gated, so no prompt is ever shown.
         #expect(await biometric.evaluateCallCount == 0)

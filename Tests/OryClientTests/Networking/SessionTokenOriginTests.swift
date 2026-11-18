@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OryClient
+@testable import Ory
 
 /// Serialized because the stub's routes and captured requests are process-wide state.
 @Suite("Session token origin", .serialized)

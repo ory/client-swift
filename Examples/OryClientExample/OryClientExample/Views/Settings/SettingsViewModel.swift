@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import OryClient
+import Ory
 
 /// Drives the account-settings flow for the signed-in user (change password, update
 /// profile, manage factors).

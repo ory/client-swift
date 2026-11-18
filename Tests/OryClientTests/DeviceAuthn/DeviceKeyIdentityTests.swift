@@ -1,7 +1,7 @@
 import Foundation
 import Testing
-import OryClientTestDoubles
-@testable import OryClient
+import OryTestDoubles
+@testable import Ory
 
 @Suite("Device key owner")
 struct DeviceKeyIdentityTests {

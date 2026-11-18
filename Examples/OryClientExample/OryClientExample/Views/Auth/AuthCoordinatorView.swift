@@ -1,4 +1,4 @@
-import OryClient
+import Ory
 import SwiftUI
 
 struct AuthCoordinatorView: View {
@@ -51,6 +51,7 @@ struct AuthCoordinatorView: View {
             viewModel: LoginViewModel(
                 client: coordinator.client,
                 onSignedIn: { session in coordinator.didAuthenticate(session) },
+                onVerificationNeeded: { handle in coordinator.showVerification(handle) },
                 onForgotPassword: { coordinator.showRecovery() },
                 onDismiss: { coordinator.dismiss() }
             )

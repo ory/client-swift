@@ -1,4 +1,4 @@
-import OryClient
+import Ory
 import SwiftUI
 
 /// Renders any server-driven Ory flow — inputs from `flow.nodes`, buttons from
@@ -21,8 +21,11 @@ struct FlowFormView: View {
     /// Device authentication signs with this device's key, so the app offers it on its own
     /// screens (`loginWithDevice`, `authenticateWithDevice`) instead of in the generic form.
     /// Social sign-in and SSO continue in a browser (`browserLocationChangeRequired`), which this
-    /// app does not handle, so their buttons are not shown.
-    private static let hiddenGroups: Set<OryNodeGroup> = [.deviceAuthn, .oidc, .saml]
+    /// app does not handle, and OryClient cannot complete passkeys, security keys, backup codes,
+    /// captchas, or magic links, so none of their fields are shown.
+    private static let hiddenGroups: Set<OryNodeGroup> = [
+        .deviceAuthn, .oidc, .saml, .passkey, .webauthn, .lookupSecret, .captcha, .link,
+    ]
 
     private var methods: [OryNodeGroup] {
         flow.availableMethods.filter { !Self.hiddenGroups.contains($0) }
@@ -92,7 +95,6 @@ struct FlowFormView: View {
         case .password: "Password"
         case .code: "Email code"
         case .totp: "Authenticator app"
-        case .lookupSecret: "Backup code"
         case .profile: "Profile"
         default: method.rawValue
         }
@@ -106,7 +108,7 @@ struct FlowFormView: View {
             default: break
             }
         }
-        return action.label ?? "Continue"
+        return action.label?.text ?? "Continue"
     }
 
     @ViewBuilder
@@ -119,8 +121,8 @@ struct FlowFormView: View {
                 text: binding(for: field),
                 isOn: boolBinding(for: field)
             )
-        case let .text(text):
-            Text(text)
+        case let .text(message):
+            Text(message.text)
         case .image where node.id == "totp_qr":
             // The authenticator app QR code arrives inline; `totpSetup` decodes it.
             if let png = flow.totpSetup?.qrCodePNG, let image = UIImage(data: png) {
@@ -129,7 +131,7 @@ struct FlowFormView: View {
         case let .image(url):
             AsyncImage(url: url) { $0.resizable().scaledToFit() } placeholder: { ProgressView() }
         case let .link(label, url):
-            Link(label, destination: url)
+            Link(label.text, destination: url)
         @unknown default:
             EmptyView()
         }
@@ -157,14 +159,14 @@ private struct FlowInputRow: View {
         VStack(alignment: .leading, spacing: 4) {
             switch field.kind {
             case .password:
-                SecureField(field.label ?? field.name.rawValue, text: $text)
+                SecureField(field.label?.text ?? field.name.rawValue, text: $text)
                     .textContentType(.password)
 
             case .checkbox:
-                Toggle(field.label ?? field.name.rawValue, isOn: $isOn)
+                Toggle(field.label?.text ?? field.name.rawValue, isOn: $isOn)
 
             default:
-                TextField(field.label ?? field.name.rawValue, text: $text)
+                TextField(field.label?.text ?? field.name.rawValue, text: $text)
                     .keyboardType(keyboardType)
                     .textContentType(textContentType)
                     .textInputAutocapitalization(.never)

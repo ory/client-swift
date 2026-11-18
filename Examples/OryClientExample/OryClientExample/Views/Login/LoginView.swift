@@ -1,4 +1,4 @@
-import OryClient
+import Ory
 import SwiftUI
 
 struct LoginView: View {
@@ -25,7 +25,7 @@ struct LoginView: View {
                     Task { await viewModel.submit(pressing: action) }
                 }
                 .safeAreaInset(edge: .bottom) {
-                    if !viewModel.confirmsSignedInUser {
+                    if viewModel.showsForgotPassword {
                         Button("Forgot password?") { viewModel.forgotPassword() }
                             .padding()
                             .disabled(viewModel.isSubmitting)

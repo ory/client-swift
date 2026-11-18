@@ -1,0 +1,20 @@
+{
+  "name": "Acme",
+  "logo_light_url": "https://cdn.example.com/acme-light.png",
+  "logo_dark_url": "https://cdn.example.com/acme-dark.png",
+  "registration_enabled": false,
+  "hide_registration_link": true,
+  "verification_enabled": true,
+  "recovery_enabled": false,
+  "login_ui_url": "https://auth.example.com/login",
+  "registration_ui_url": "https://auth.example.com/registration",
+  "recovery_ui_url": "https://auth.example.com/recovery",
+  "verification_ui_url": "https://auth.example.com/verification",
+  "settings_ui_url": "https://auth.example.com/settings",
+  "error_ui_url": "https://auth.example.com/error",
+  "default_redirect_url": "https://example.com/welcome",
+  "hide_ory_branding": true,
+  "terms_of_service_url": "https://example.com/terms",
+  "privacy_policy_url": "https://example.com/privacy",
+  "contact_url": "mailto:help@example.com"
+}

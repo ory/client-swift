@@ -1,13 +1,14 @@
 import CryptoKit
 import Foundation
-@testable import OryClient
+@testable import Ory
 
 /// Returns configured outcomes and records what it was called with. Used to test
 /// ``OryClient`` orchestration without the network.
-actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRepository, VerificationRepository, RecoveryRepository, SettingsRepository, DeviceAuthnRepository {
+actor FakeFrontendRepository: ElementsConfigurationRepository, SessionRepository, LoginRepository, RegistrationRepository, VerificationRepository, RecoveryRepository, SettingsRepository, DeviceAuthnRepository {
 
     private let currentSessionResult: Result<OrySession, OryClientError>
     private let revokeSessionResult: Result<Void, OryClientError>
+    private let elementsConfigurationResult: Result<OryElementsConfiguration, OryClientError>
     private let createLoginFlowResult: Result<OryFlow, OryClientError>
     private let getLoginFlowResult: Result<OryFlow, OryClientError>
     private let submitLoginResult: Result<LoginSubmissionOutcome, OryClientError>
@@ -40,9 +41,14 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
     /// The keys `listDeviceKeys` reports, as the server would list them in the settings flow.
     private let deviceKeyRecords: [DeviceKeyRecord]
     private let afterDeviceMutation: @Sendable () async throws -> Void
+    /// Runs while `currentSession` or `submitDeviceLogin` is in flight, so a test can interleave
+    /// another client call with the request.
+    private let duringCurrentSession: @Sendable () async throws -> Void
+    private let duringDeviceLogin: @Sendable () async throws -> Void
 
     private(set) var receivedSessionToken: String?
     private(set) var submitCallCount = 0
+    private(set) var elementsConfigurationCallCount = 0
     private(set) var receivedLoginFlowOptions: OryLoginFlowOptions?
     private(set) var receivedLoginSessionToken: String?
     private(set) var submittedDeviceName: String?
@@ -56,6 +62,7 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
     init(
         currentSession: Result<OrySession, OryClientError> = .failure(.notAuthenticated),
         revokeSession: Result<Void, OryClientError> = .success(()),
+        elementsConfiguration: Result<OryElementsConfiguration, OryClientError> = .failure(.notAuthenticated),
         createLoginFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         getLoginFlow: Result<OryFlow, OryClientError> = .failure(.notAuthenticated),
         submitLogin: Result<LoginSubmissionOutcome, OryClientError> = .failure(.notAuthenticated),
@@ -82,12 +89,17 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
         concurrentEnrollmentKeyIDs: Set<String> = [],
         rotatedPINSecretToSeal: Data = Data(repeating: 7, count: 32),
         deviceKeyRecords: [DeviceKeyRecord] = [],
-        afterDeviceMutation: @escaping @Sendable () async throws -> Void = {}
+        afterDeviceMutation: @escaping @Sendable () async throws -> Void = {},
+        duringCurrentSession: @escaping @Sendable () async throws -> Void = {},
+        duringDeviceLogin: @escaping @Sendable () async throws -> Void = {}
     ) {
+        self.duringCurrentSession = duringCurrentSession
+        self.duringDeviceLogin = duringDeviceLogin
         self.deviceKeyRecords = deviceKeyRecords
         self.afterDeviceMutation = afterDeviceMutation
         self.currentSessionResult = currentSession
         self.revokeSessionResult = revokeSession
+        self.elementsConfigurationResult = elementsConfiguration
         self.createLoginFlowResult = createLoginFlow
         self.getLoginFlowResult = getLoginFlow
         self.submitLoginResult = submitLogin
@@ -115,8 +127,14 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
         self.rotatedPINSecretToSeal = rotatedPINSecretToSeal
     }
 
+    func elementsConfiguration() async throws -> OryElementsConfiguration {
+        elementsConfigurationCallCount += 1
+        return try elementsConfigurationResult.get()
+    }
+
     func currentSession(sessionToken: String) async throws -> OrySession {
         receivedSessionToken = sessionToken
+        try await duringCurrentSession()
         return try currentSessionResult.get()
     }
 
@@ -220,6 +238,7 @@ actor FakeFrontendRepository: SessionRepository, LoginRepository, RegistrationRe
         submitCallCount += 1
         submittedClientKeyID = clientKeyID
         submittedPINProof = pinProof
+        try await duringDeviceLogin()
         return try submitDeviceLoginResult.get()
     }
 
